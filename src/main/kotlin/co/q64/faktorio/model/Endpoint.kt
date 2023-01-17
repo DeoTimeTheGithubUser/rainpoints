@@ -1,5 +1,6 @@
 package co.q64.faktorio.model
 
+import co.q64.faktorio.FaktorioDsl
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -21,6 +22,10 @@ class Endpoint(
     private var call: (() -> Call)? = null
 ) {
 
+    val parameters: List<Parameter<*>>
+        get() = call?.invoke()?.parameters.orEmpty()
+
+    @FaktorioDsl
     fun call(closure: Call.() -> Unit) {
         call = { Call().apply(closure) }
     }
@@ -33,7 +38,7 @@ class Endpoint(
         // todo process sco
     }
 
-    fun build() {
+    internal fun build() {
         route.apply {
             method(method) {
                 handle { processCall() }
@@ -53,6 +58,7 @@ class Endpoint(
             (Parameter(name, description, typeOf<T>(), type) { this as? T })
                 .also { parameters += it }
 
+        @FaktorioDsl
         fun request(closure: RequestHandler) {
             request = closure
         }
