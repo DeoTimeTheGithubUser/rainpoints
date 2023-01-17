@@ -91,6 +91,7 @@ class Endpoint(
     }
 }
 
+@FaktorioDsl
 fun Route.endpoint(path: String? = null, closure: Endpoint.() -> Unit) {
     val route = (path?.let { createRouteFromPath(it) } ?: this)
     Endpoint(route).apply(closure).build()
