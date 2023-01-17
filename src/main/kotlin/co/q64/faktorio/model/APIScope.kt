@@ -1,7 +1,5 @@
 package co.q64.faktorio.model
 
-import kotlinx.serialization.Polymorphic
-
 interface APIScope {
 
     val id: String

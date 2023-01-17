@@ -2,6 +2,7 @@ package co.q64.faktorio.model
 
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
@@ -24,13 +25,20 @@ class Endpoint(
         call = { Call().apply(closure) }
     }
 
-    private fun PipelineContext<*, ApplicationCall>.processCall() {
-        val call = this@Endpoint.call?.invoke()
-
+    private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
+        val handler = this@Endpoint.call?.invoke() ?: return
+        val factory = ArgumentFactory(call)
+        handler.parameters.forEach { factory.processParameter(it) }
+        handler.request?.let { it() }
+        // todo process sco
     }
 
     fun build() {
-
+        route.apply {
+            method(method) {
+                handle { processCall() }
+            }
+        }
     }
 
     class Call(
@@ -42,7 +50,8 @@ class Endpoint(
             type: Parameter.Type = Parameter.Type.QueryParameter,
             description: String? = null
         ): Parameter<T> =
-            (Parameter(name, description, typeOf<T>(), type) { this as? T }).also { parameters += it }
+            (Parameter(name, description, typeOf<T>(), type) { this as? T })
+                .also { parameters += it }
 
         fun request(closure: RequestHandler) {
             request = closure
@@ -59,6 +68,8 @@ class Endpoint(
         val cast: Any.() -> T?, // no unchecked cast!
     ) {
 
+        val optional get() = type.isMarkedNullable
+
         operator fun provideDelegate(ref: Any?, prop: KProperty<*>) =
             this.also { name ?: run { name = prop.name } }
 
@@ -67,11 +78,11 @@ class Endpoint(
             value ?: error("Tried to access parameter $name's value outside of a request.")
 
 
-    enum class Type {
-        Parameter,
-        QueryParameter
+        enum class Type {
+            Parameter,
+            QueryParameter
+        }
     }
-}
 }
 
 fun Route.endpoint(path: String? = null, closure: Endpoint.() -> Unit) {
