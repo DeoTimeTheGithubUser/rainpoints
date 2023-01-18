@@ -2,9 +2,10 @@ package co.q64.faktorio.model
 
 import co.q64.faktorio.FaktorioDsl
 import co.q64.faktorio.argument.StringArgumentParser
+import co.q64.faktorio.argument.StringArgumentParser.properties
 import co.q64.faktorio.argument.standardType
 import co.q64.faktorio.internal.ArgumentProcessor
-import co.q64.faktorio.scopeHandler
+import co.q64.faktorio.internal.scopeHandler
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -36,7 +37,7 @@ class Endpoint(
 
     @FaktorioDsl
     fun call(closure: Call.() -> Unit) {
-        call = { Call().apply(closure) }
+        call = { Call().apply(closure).build() }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
@@ -55,7 +56,7 @@ class Endpoint(
         handler.request?.let { it() }
     }
 
-    internal fun build() {
+    internal fun build() = apply {
         route.apply {
             method(method) {
                 handle {
@@ -66,6 +67,7 @@ class Endpoint(
     }
 
     class Call(
+        internal val responses: MutableList<Response> = mutableListOf(),
         @PublishedApi internal val arguments: MutableList<Argument<*>> = mutableListOf(),
         internal var request: RequestHandler? = null
     ) {
@@ -83,6 +85,10 @@ class Endpoint(
             type: Argument.Type = Argument.Type.QueryParameter,
         ) = parameter(name, description, type).typed<T>()
 
+        fun response(code: HttpStatusCode = HttpStatusCode.OK, closure: Response.() -> Unit) {
+            responses += Response(code).apply(closure)
+        }
+
         operator fun <T> Argument<T>.provideDelegate(ref: Any?, prop: KProperty<*>) =
             let {
                 (name?.let { this } ?: copy(name = prop.name))
@@ -95,6 +101,16 @@ class Endpoint(
         fun request(closure: RequestHandler) {
             request = closure
         }
+
+        internal fun build() = apply {
+            arguments.forEach { with(it.parser) { properties() } }
+        }
+
+        data class Response(
+            val code: HttpStatusCode,
+            var description: String? = null,
+            var example: Any? = null
+        )
 
     }
 
@@ -121,21 +137,25 @@ class Endpoint(
             val type: KType
             val description: String
             fun parse(input: String): T
+            fun Call.properties() = Unit
 
             companion object {
                 data class Simple<T>(
                     override val type: KType,
                     override val description: String,
-                    val parser: (String) -> T
+                    val props: Call.() -> Unit,
+                    val parser: (String) -> T,
                 ) : Parser<T> {
                     override fun parse(input: String) = parser(input)
+                    override fun Call.properties() = props()
                 }
 
                 inline operator fun <reified T> invoke(
                     description: String = "${typeOf<T>()} type argument.",
+                    noinline props: Call.() -> Unit = {},
                     noinline parse: (String) -> T = { error("Default parse method should be overridden.") }
                 ) =
-                    Simple(typeOf<T>(), description, parse)
+                    Simple(typeOf<T>(), description, props, parse)
             }
         }
 
