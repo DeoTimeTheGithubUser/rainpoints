@@ -83,7 +83,8 @@ class Endpoint(
             name: String? = null,
             description: String? = null,
             type: Argument.Type = Argument.Type.QueryParameter,
-        ) = parameter(name, description, type).typed<T>()
+            parser: Argument.Parser<T> = standardType()
+        ) = parameter(name, description, type).parsed(parser)
 
         fun response(code: HttpStatusCode = HttpStatusCode.OK, closure: Response.() -> Unit) {
             responses += Response(code).apply(closure)
@@ -129,14 +130,12 @@ class Endpoint(
         inline fun <reified R> map(crossinline functor: (T) -> R) =
             parsed(Parser { functor(parser.parse(it)) })
 
-        inline fun <reified R> typed() = cast<R>().copy(parser = standardType())
-
         fun optional() = cast<T?>().copy(required = false)
 
         interface Parser<T> {
             val type: KType
-            val description: String
             fun parse(input: String): T
+            val description: String get() = "$type type argument."
             fun Call.properties() = Unit
 
             companion object {
