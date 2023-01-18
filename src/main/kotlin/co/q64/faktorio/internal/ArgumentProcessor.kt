@@ -16,11 +16,13 @@ internal class ArgumentProcessor(
             error("Parameter $argument still has no name.")
         }
 
-        val raw =
-            (if (argument.paramType == Endpoint.Argument.Type.QueryParameter) call.request.queryParameters[name]
-            else call.parameters[name])
-                ?: (if (!argument.required) return null
-                else throw MissingRequestParameterException(name))
+        val raw = when (argument.paramType) {
+            Endpoint.Argument.Type.Query -> call.request.queryParameters[name]
+            Endpoint.Argument.Type.Path -> call.parameters[name]
+            Endpoint.Argument.Type.Header -> call.request.headers[name]
+            Endpoint.Argument.Type.Cookie -> call.request.cookies[name]
+        } ?: (if (!argument.required) return null
+        else throw MissingRequestParameterException(name))
 
         return runCatching {
             argument.parser.parse(raw)

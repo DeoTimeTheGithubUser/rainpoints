@@ -20,6 +20,7 @@ dependencies {
 
     // swagger
     implementation("io.swagger.core.v3:swagger-models:2.2.8")
+    implementation("com.github.victools:jsonschema-generator:4.28.0")
 
     // ktor
     implementation("io.ktor:ktor-server-core:2.2.2")

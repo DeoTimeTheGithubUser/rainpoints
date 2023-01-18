@@ -5,6 +5,7 @@ import co.q64.faktorio.argument.StringArgumentParser
 import co.q64.faktorio.argument.typedArgument
 import co.q64.faktorio.internal.ArgumentProcessor
 import co.q64.faktorio.internal.scopeHandler
+import co.q64.faktorio.util.Buildable
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -15,6 +16,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
+import io.swagger.v3.oas.models.Operation
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.parameters.Parameter
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -24,19 +28,20 @@ typealias RequestHandler = suspend PipelineContext<*, ApplicationCall>.() -> Uni
 
 class Endpoint(
     private val route: Route,
+    var summary: String? = null,
     var description: String? = null,
     var method: HttpMethod = HttpMethod.Get,
     var secret: Boolean = false,
     var scope: APIScope? = null,
     private var call: (() -> Call)? = null
-) {
+) : Buildable<Operation> {
 
     val arguments: List<Argument<*>>
         get() = call?.invoke()?.arguments.orEmpty()
 
     @FaktorioDsl
     fun call(closure: Call.() -> Unit) {
-        call = { Call().apply(closure).build() }
+        call = { Call().apply(closure).apply() }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
@@ -55,13 +60,22 @@ class Endpoint(
         handler.request?.let { it() }
     }
 
-    internal fun build() = apply {
+    internal fun apply() = apply {
         route.apply {
             method(method) {
                 handle {
                     runCatching { processCall() }
                 }
             }
+        }
+    }
+
+    override fun build() = Operation().also { op ->
+        op.summary(summary)
+            .description(description)
+
+        call?.invoke()?.let { call ->
+            op.parameters(call.arguments.map { it.build() })
         }
     }
 
@@ -73,7 +87,7 @@ class Endpoint(
         fun parameter(
             name: String? = null,
             description: String? = null,
-            type: Argument.Type = Argument.Type.QueryParameter,
+            type: Argument.Type = Argument.Type.Query,
         ): Argument<String> =
             (Argument(name, type, StringArgumentParser, description))
 
@@ -81,7 +95,7 @@ class Endpoint(
         inline fun <reified T> parameter(
             name: String? = null,
             description: String? = null,
-            type: Argument.Type = Argument.Type.QueryParameter,
+            type: Argument.Type = Argument.Type.Query,
             parser: Argument.Parser<T> = typedArgument()
         ) = parameter(name, description, type).parsed(parser)
 
@@ -103,7 +117,7 @@ class Endpoint(
             request = closure
         }
 
-        internal fun build() = apply {
+        internal fun apply() = apply {
             arguments.forEach { with(it.parser) { properties() } }
         }
 
@@ -121,8 +135,9 @@ class Endpoint(
         val parser: Parser<T>,
         val description: String? = null,
         val required: Boolean = true,
+        val example: T? = null,
         internal var value: T? = null,
-    ) {
+    ) : Buildable<Parameter> {
 
         fun <R> parsed(parser: Parser<R>) =
             cast<R>().copy(parser = parser)
@@ -134,6 +149,8 @@ class Endpoint(
             parsed(Parser { functor(parser.parse(it)) })
 
         fun optional() = cast<T?>().copy(required = false)
+
+        fun example(example: T) = copy(example = example)
 
         interface Parser<T> {
             val type: KType
@@ -170,8 +187,19 @@ class Endpoint(
         }
 
         enum class Type {
-            Parameter,
-            QueryParameter
+            Path,
+            Query,
+            Header,
+            Cookie
+        }
+
+        override fun build() = Parameter().also { param ->
+            param
+                .name(name)
+                .description(description)
+                .`in`(paramType.name.lowercase())
+                .required(required)
+                .example(example)
         }
 
         @PublishedApi
@@ -183,5 +211,5 @@ class Endpoint(
 @FaktorioDsl
 fun Route.endpoint(path: String? = null, closure: Endpoint.() -> Unit) {
     val route = (path?.let { createRouteFromPath(it) } ?: this)
-    Endpoint(route).apply(closure).build()
+    Endpoint(route).apply(closure).apply()
 }
