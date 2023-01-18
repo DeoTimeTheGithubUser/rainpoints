@@ -86,6 +86,7 @@ class Endpoint(
             parser: Argument.Parser<T> = standardType()
         ) = parameter(name, description, type).parsed(parser)
 
+        @FaktorioDsl
         fun response(code: HttpStatusCode = HttpStatusCode.OK, closure: Response.() -> Unit) {
             responses += Response(code).apply(closure)
         }

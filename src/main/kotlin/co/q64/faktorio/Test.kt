@@ -4,6 +4,7 @@ import co.q64.faktorio.argument.IntArgumentParser
 import co.q64.faktorio.model.APIScope
 import co.q64.faktorio.model.endpoint
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -37,6 +38,12 @@ fun main(): Unit = runBlocking {
                     call {
                         val name by parameter<String>()
                         val glitchy by parameter<Boolean>()
+
+                        response(HttpStatusCode.ExpectationFailed) {
+                            description = "Utility"
+                            example = Any()
+                        }
+
                         request {
                             call.respond("Hello $name, you are ${if (glitchy) "glitchy" else "antiglitchy"}.")
                         }
