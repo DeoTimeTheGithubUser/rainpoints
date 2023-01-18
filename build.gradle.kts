@@ -18,6 +18,8 @@ dependencies {
     // coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
+    // swagger
+    implementation("io.swagger.core.v3:swagger-models:2.2.8")
 
     // ktor
     implementation("io.ktor:ktor-server-core:2.2.2")

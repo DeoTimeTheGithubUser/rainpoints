@@ -1,6 +1,7 @@
 package co.q64.faktorio
 
 import co.q64.faktorio.argument.IntArgumentParser
+import co.q64.faktorio.argument.finite
 import co.q64.faktorio.model.APIScope
 import co.q64.faktorio.model.endpoint
 import io.ktor.http.HttpMethod
@@ -14,6 +15,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
+import java.math.BigInteger
 
 object TestScopes : APIScope.Library {
     val Glitch = "glitchy" {
