@@ -1,18 +1,25 @@
 package co.q64.faktorio.argument
 
 import co.q64.faktorio.model.Endpoint
+import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
+
+private fun badRequest(reason: String): Endpoint.Call.() -> Unit = {
+    response(HttpStatusCode.BadRequest) {
+        description = reason
+    }
+}
 
 @PublishedApi
 internal val TypedArguments: MutableMap<KType, Endpoint.Argument.Parser<*>> =
     // Standard arguments
     listOf(
         StringArgumentParser,
-        IntArgumentParser(),
-        LongArgumentParser(),
-        DoubleArgumentParser(),
+        IntArgumentParser,
+        LongArgumentParser,
+        DoubleArgumentParser,
         BooleanArgumentParser,
         UUIDArgumentParser
     ).associateBy { it.type }.toMutableMap()
@@ -24,43 +31,18 @@ internal inline fun <reified T> typedArgument() =
         ?: throw IllegalArgumentException("No standard argument parser found for type ${typeOf<T>()}")
 
 object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argument.Parser { it })
-
-abstract class ComparableArgumentParser<T : Comparable<T>>(
-    override val type: KType,
-    val convert: (String) -> T,
-) : Endpoint.Argument.Parser<T> {
-
-    abstract val min: T
-    abstract val max: T
-
-
-    override fun parse(input: String): T {
-        val item = convert(input)
-        require(item > min) { "$type must be greater than minimum $min" }
-        require(item < max) { "$type must be less than maximum $max" }
-        return item
-    }
-}
-
-data class IntArgumentParser(
-    override val min: Int = Int.MIN_VALUE,
-    override val max: Int = Int.MAX_VALUE
-) : ComparableArgumentParser<Int>(typeOf<Int>(), String::toInt)
-
-data class LongArgumentParser(
-    override val min: Long = Long.MIN_VALUE,
-    override val max: Long = Long.MAX_VALUE
-) : ComparableArgumentParser<Long>(typeOf<Long>(), String::toLong)
-
-data class DoubleArgumentParser(
-    override val min: Double = Double.MIN_VALUE,
-    override val max: Double = Double.MAX_VALUE,
-    val finite: Boolean = true
-) : ComparableArgumentParser<Double>(typeOf<Double>(), String::toDouble) {
-    override fun parse(input: String) =
-        super.parse(input).takeUnless { !it.isFinite() && finite }
-            ?: throw IllegalArgumentException("Input must be a finite number.")
-}
-
+object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser { it.toInt() })
+object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser { it.toLong() })
+object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser { it.toDouble() })
 object BooleanArgumentParser : Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser { it.toBooleanStrict() })
-object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by (Endpoint.Argument.Parser(parse = UUID::fromString))
+object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by (Endpoint.Argument.Parser { UUID.fromString(it) })
+
+fun <T : Comparable<T>> Endpoint.Argument<T>.min(min: T) = chain(badRequest("If the input value is less than $min")) {
+    check(it > min) { "Input must be greater than $min" }
+}
+fun <T : Comparable<T>> Endpoint.Argument<T>.max(max: T) = chain(badRequest("If the input value is greter than $max")) {
+    check(it < max) { "Input must be less than $max" }
+}
+fun Endpoint.Argument<Double>.finite() = chain(badRequest("If the input value is not finite")) {
+    check(it.isFinite()) { "Input must be a finite value" }
+}

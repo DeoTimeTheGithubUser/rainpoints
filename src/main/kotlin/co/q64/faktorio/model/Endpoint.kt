@@ -127,6 +127,9 @@ class Endpoint(
         fun <R> parsed(parser: Parser<R>) =
             cast<R>().copy(parser = parser)
 
+        fun chain(props: Call.() -> Unit = {}, closure: (T) -> Unit) =
+            parsed(Parser(parser.type, props = props) { parser.parse(it).also(closure) })
+
         inline fun <reified R> map(crossinline functor: (T) -> R) =
             parsed(Parser { functor(parser.parse(it)) })
 
@@ -138,21 +141,29 @@ class Endpoint(
             val description: String get() = "$type type argument."
             fun Call.properties() = Unit
 
+            data class Simple<T>(
+                override val type: KType,
+                override val description: String,
+                val props: Call.() -> Unit,
+                val parser: (String) -> T,
+            ) : Parser<T> {
+                override fun parse(input: String) = parser(input)
+                override fun Call.properties() = props()
+            }
+
             companion object {
-                data class Simple<T>(
-                    override val type: KType,
-                    override val description: String,
-                    val props: Call.() -> Unit,
-                    val parser: (String) -> T,
-                ) : Parser<T> {
-                    override fun parse(input: String) = parser(input)
-                    override fun Call.properties() = props()
-                }
+
+                operator fun <T> invoke(
+                    type: KType,
+                    description: String = "$type type argument.",
+                    props: Call.() -> Unit = {},
+                    parse: (String) -> T
+                ) = Simple(type, description, props, parse)
 
                 inline operator fun <reified T> invoke(
                     description: String = "${typeOf<T>()} type argument.",
                     noinline props: Call.() -> Unit = {},
-                    noinline parse: (String) -> T = { error("Default parse method should be overridden.") }
+                    noinline parse: (String) -> T
                 ) =
                     Simple(typeOf<T>(), description, props, parse)
             }
