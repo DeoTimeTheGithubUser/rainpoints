@@ -4,13 +4,18 @@ import co.q64.faktorio.FaktorioDsl
 import co.q64.faktorio.argument.StringArgumentParser
 import co.q64.faktorio.argument.standardType
 import co.q64.faktorio.internal.ArgumentProcessor
+import co.q64.faktorio.scopeHandler
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -21,6 +26,7 @@ class Endpoint(
     private val route: Route,
     var description: String? = null,
     var method: HttpMethod = HttpMethod.Get,
+    var secret: Boolean = false,
     var scope: APIScope? = null,
     private var call: (() -> Call)? = null
 ) {
@@ -34,10 +40,18 @@ class Endpoint(
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
+        scope?.let {
+            if (!call.scopeHandler(this, it)) {
+                if (secret) throw NotFoundException()
+                else {
+                    call.respond(HttpStatusCode.Unauthorized, "Missing required scope \"${it.name}\".")
+                    throw CancellationException()
+                }
+            }
+        }
         val handler = this@Endpoint.call?.invoke() ?: return
         val factory = ArgumentProcessor(call)
         handler.arguments.forEach { factory.processParameter(it) }
-        // todo process scope
         handler.request?.let { it() }
     }
 
@@ -45,7 +59,7 @@ class Endpoint(
         route.apply {
             method(method) {
                 handle {
-                    processCall()
+                    runCatching { processCall() }
                 }
             }
         }
@@ -71,7 +85,7 @@ class Endpoint(
 
         operator fun <T> Argument<T>.provideDelegate(ref: Any?, prop: KProperty<*>) =
             let {
-                (name?.let { this } ?: copy(name = prop.name)).also { println("new name: ${it.name}") }
+                (name?.let { this } ?: copy(name = prop.name))
             }.also { arguments += it }
 
         operator fun <T> Argument<T>.getValue(ref: Nothing?, prop: KProperty<*>) =
