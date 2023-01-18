@@ -24,6 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:2.2.2")
     implementation("io.ktor:ktor-server-auth:2.2.2")
     implementation("io.ktor:ktor-server-content-negotiation:2.2.2")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
 
     // serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")

@@ -1,6 +1,9 @@
 package co.q64.faktorio.model
 
 import co.q64.faktorio.FaktorioDsl
+import co.q64.faktorio.argument.StringArgumentParser
+import co.q64.faktorio.argument.standardType
+import co.q64.faktorio.internal.ArgumentProcessor
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -22,8 +25,8 @@ class Endpoint(
     private var call: (() -> Call)? = null
 ) {
 
-    val parameters: List<Parameter<*>>
-        get() = call?.invoke()?.parameters.orEmpty()
+    val arguments: List<Argument<*>>
+        get() = call?.invoke()?.arguments.orEmpty()
 
     @FaktorioDsl
     fun call(closure: Call.() -> Unit) {
@@ -32,31 +35,47 @@ class Endpoint(
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
         val handler = this@Endpoint.call?.invoke() ?: return
-        val factory = ArgumentFactory(call)
-        handler.parameters.forEach { factory.processParameter(it) }
+        val factory = ArgumentProcessor(call)
+        handler.arguments.forEach { factory.processParameter(it) }
+        // todo process scope
         handler.request?.let { it() }
-        // todo process sco
     }
 
     internal fun build() {
         route.apply {
             method(method) {
-                handle { processCall() }
+                handle {
+                    processCall()
+                }
             }
         }
     }
 
     class Call(
-        @PublishedApi internal val parameters: MutableList<Parameter<*>> = mutableListOf(),
+        @PublishedApi internal val arguments: MutableList<Argument<*>> = mutableListOf(),
         internal var request: RequestHandler? = null
     ) {
-        inline fun <reified T : Any> parameter(
+        fun parameter(
             name: String? = null,
-            type: Parameter.Type = Parameter.Type.QueryParameter,
-            description: String? = null
-        ): Parameter<T> =
-            (Parameter(name, description, typeOf<T>(), type) { this as? T })
-                .also { parameters += it }
+            description: String? = null,
+            type: Argument.Type = Argument.Type.QueryParameter,
+        ): Argument<String> =
+            (Argument(name, type, StringArgumentParser, description))
+
+        @JvmName("reifiedParameter")
+        inline fun <reified T> parameter(
+            name: String? = null,
+            description: String? = null,
+            type: Argument.Type = Argument.Type.QueryParameter,
+        ) = parameter(name, description, type).typed<T>()
+
+        operator fun <T> Argument<T>.provideDelegate(ref: Any?, prop: KProperty<*>) =
+            let {
+                (name?.let { this } ?: copy(name = prop.name)).also { println("new name: ${it.name}") }
+            }.also { arguments += it }
+
+        operator fun <T> Argument<T>.getValue(ref: Nothing?, prop: KProperty<*>) =
+            value ?: error("Tried to access parameter $name's value outside of a request.")
 
         @FaktorioDsl
         fun request(closure: RequestHandler) {
@@ -65,29 +84,55 @@ class Endpoint(
 
     }
 
-    data class Parameter<T> @PublishedApi internal constructor(
-        var name: String?,
-        val description: String? = null,
-        val type: KType,
+    data class Argument<T> @PublishedApi internal constructor(
+        val name: String?,
         val paramType: Type,
+        val parser: Parser<T>,
+        val description: String? = null,
+        val required: Boolean = true,
         internal var value: T? = null,
-        val cast: Any.() -> T?, // no unchecked cast!
     ) {
 
-        val optional get() = type.isMarkedNullable
+        fun <R> parsed(parser: Parser<R>) =
+            cast<R>().copy(parser = parser)
 
-        operator fun provideDelegate(ref: Any?, prop: KProperty<*>) =
-            this.also { name ?: run { name = prop.name } }
+        inline fun <reified R> map(crossinline functor: (T) -> R) =
+            parsed(Parser { functor(parser.parse(it)) })
 
+        inline fun <reified R> typed() = cast<R>().copy(parser = standardType())
 
-        operator fun getValue(ref: Nothing?, prop: KProperty<*>) =
-            value ?: error("Tried to access parameter $name's value outside of a request.")
+        fun optional() = cast<T?>().copy(required = false)
 
+        interface Parser<T> {
+            val type: KType
+            val description: String
+            fun parse(input: String): T
+
+            companion object {
+                data class Simple<T>(
+                    override val type: KType,
+                    override val description: String,
+                    val parser: (String) -> T
+                ) : Parser<T> {
+                    override fun parse(input: String) = parser(input)
+                }
+
+                inline operator fun <reified T> invoke(
+                    description: String = "${typeOf<T>()} type argument.",
+                    noinline parse: (String) -> T = { error("Default parse method should be overridden.") }
+                ) =
+                    Simple(typeOf<T>(), description, parse)
+            }
+        }
 
         enum class Type {
             Parameter,
             QueryParameter
         }
+
+        @PublishedApi
+        @Suppress("UNCHECKED_CAST")
+        internal fun <R> cast() = (this as Argument<R>)
     }
 }
 
