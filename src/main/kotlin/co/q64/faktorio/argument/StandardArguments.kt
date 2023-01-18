@@ -6,7 +6,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 @PublishedApi
-internal val StandardTypes =
+internal val TypedArguments: MutableMap<KType, Endpoint.Argument.Parser<*>> =
+    // Standard arguments
     listOf(
         StringArgumentParser,
         IntArgumentParser(),
@@ -14,12 +15,12 @@ internal val StandardTypes =
         DoubleArgumentParser(),
         BooleanArgumentParser,
         UUIDArgumentParser
-    ).associateBy { it.type }
+    ).associateBy { it.type }.toMutableMap()
 
 @Suppress("UNCHECKED_CAST")
 @PublishedApi
-internal inline fun <reified T> standardType() =
-    (StandardTypes[typeOf<T>()] as? Endpoint.Argument.Parser<T>)
+internal inline fun <reified T> typedArgument() =
+    (TypedArguments[typeOf<T>()] as? Endpoint.Argument.Parser<T>)
         ?: throw IllegalArgumentException("No standard argument parser found for type ${typeOf<T>()}")
 
 object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argument.Parser { it })

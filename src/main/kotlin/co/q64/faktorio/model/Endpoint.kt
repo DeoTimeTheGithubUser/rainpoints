@@ -2,8 +2,7 @@ package co.q64.faktorio.model
 
 import co.q64.faktorio.FaktorioDsl
 import co.q64.faktorio.argument.StringArgumentParser
-import co.q64.faktorio.argument.StringArgumentParser.properties
-import co.q64.faktorio.argument.standardType
+import co.q64.faktorio.argument.typedArgument
 import co.q64.faktorio.internal.ArgumentProcessor
 import co.q64.faktorio.internal.scopeHandler
 import io.ktor.http.HttpMethod
@@ -83,7 +82,7 @@ class Endpoint(
             name: String? = null,
             description: String? = null,
             type: Argument.Type = Argument.Type.QueryParameter,
-            parser: Argument.Parser<T> = standardType()
+            parser: Argument.Parser<T> = typedArgument()
         ) = parameter(name, description, type).parsed(parser)
 
         @FaktorioDsl
