@@ -29,7 +29,6 @@ data class Test(
 
 
 fun main(): Unit = runBlocking {
-
     embeddedServer(Netty, port = 8080) {
 
         install(Faktorio) {

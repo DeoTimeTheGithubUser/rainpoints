@@ -2,6 +2,9 @@ package co.q64.faktorio.argument
 
 import co.q64.faktorio.model.Endpoint
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import java.util.UUID
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -28,21 +31,30 @@ internal val TypedArguments: MutableMap<KType, Endpoint.Argument.Parser<*>> =
 @PublishedApi
 internal inline fun <reified T> typedArgument() =
     (TypedArguments[typeOf<T>()] as? Endpoint.Argument.Parser<T>)
-        ?: throw IllegalArgumentException("No standard argument parser found for type ${typeOf<T>()}")
+        ?: JsonArgumentParser(typeOf<T>(), serializer())
 
 object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argument.Parser { it })
-object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser { it.toInt() })
-object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser { it.toLong() })
-object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser { it.toDouble() })
-object BooleanArgumentParser : Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser { it.toBooleanStrict() })
-object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by (Endpoint.Argument.Parser { UUID.fromString(it) })
+object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser(parse = String::toInt))
+object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser(parse = String::toLong))
+object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser(parse = String::toDouble))
+object BooleanArgumentParser :
+    Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser(parse = String::toBooleanStrict))
 
-fun <T : Comparable<T>> Endpoint.Argument<T>.min(min: T) = chain(badRequest("If the input value is less than $min")) {
-    check(it > min) { "Input must be greater than $min" }
+object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by Endpoint.Argument.Parser(parse = UUID::fromString)
+
+data class JsonArgumentParser<T>(
+    override val type: KType,
+    private val serializer: KSerializer<T>
+) : Endpoint.Argument.Parser<T> {
+    override fun parse(input: String) =
+        Json.decodeFromString(serializer, input)
 }
-fun <T : Comparable<T>> Endpoint.Argument<T>.max(max: T) = chain(badRequest("If the input value is greter than $max")) {
-    check(it < max) { "Input must be less than $max" }
-}
-fun Endpoint.Argument<Double>.finite() = chain(badRequest("If the input value is not finite")) {
-    check(it.isFinite()) { "Input must be a finite value" }
-}
+
+fun <T : Comparable<T>> Endpoint.Argument<T>.min(min: T) =
+    require("Input value is less than $min") { it > min }
+
+fun <T : Comparable<T>> Endpoint.Argument<T>.max(max: T) =
+    require("Input is more than $max") { it < max }
+
+fun Endpoint.Argument<Double>.finite() =
+    require("Input value is not finite") { it.isFinite() }

@@ -12,6 +12,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -157,6 +158,15 @@ class Endpoint(
 
         fun chain(props: Call.() -> Unit = {}, closure: (T) -> Unit) =
             parsed(Parser(parser.type, props = props) { parser.parse(it).also(closure) })
+
+        fun require(happens: String = "requirement is not met", check: (T) -> Boolean) =
+            chain({
+                response(HttpStatusCode.BadRequest) {
+                    description = "When ${happens.replaceFirstChar { it.lowercase() }} for parameter $name."
+                }
+            }) {
+                if (!check(it)) throw BadRequestException("$happens for parameter $name.")
+            }
 
         inline fun <reified R> map(crossinline functor: (T) -> R) =
             parsed(Parser { functor(parser.parse(it)) })

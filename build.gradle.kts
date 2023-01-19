@@ -19,8 +19,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     // swagger
-    implementation("io.swagger.core.v3:swagger-core:2.2.8")
-    implementation("io.swagger.parser.v3:swagger-parser:2.1.11")
+    implementation("io.swagger.core.v3:swagger-models:2.2.8")
 
     // ktor
     val ktorVersion = "2.2.2"
@@ -34,7 +33,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.8.0")
 
     // serialization
-//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 }
 
 tasks.withType<KotlinCompile> {
