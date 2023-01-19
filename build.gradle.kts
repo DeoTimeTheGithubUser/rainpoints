@@ -12,6 +12,7 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://repo.q64.io/rain-public") }
 }
 
 dependencies {
@@ -19,7 +20,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     // swagger
-    implementation("io.swagger.core.v3:swagger-models:2.2.8")
+    implementation("io.swagger.core.v3:swagger-core:2.2.8")
 
     // ktor
     val ktorVersion = "2.2.2"
@@ -40,6 +41,7 @@ dependencies {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
 }
 

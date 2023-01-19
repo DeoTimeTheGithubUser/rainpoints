@@ -4,6 +4,7 @@ import co.q64.faktorio.argument.TypedArguments
 import co.q64.faktorio.model.Endpoint
 import co.q64.faktorio.util.defauled
 import io.ktor.server.plugins.swagger.SwaggerConfig
+import io.swagger.v3.core.converter.ModelConverters
 import kotlin.properties.Delegates
 import kotlin.reflect.typeOf
 
