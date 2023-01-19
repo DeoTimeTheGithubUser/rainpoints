@@ -19,27 +19,27 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     // swagger
-    implementation("io.swagger.core.v3:swagger-models:2.2.8")
-    implementation("com.github.victools:jsonschema-generator:4.28.0")
+    implementation("io.swagger.core.v3:swagger-core:2.2.8")
+    implementation("io.swagger.parser.v3:swagger-parser:2.1.11")
 
     // ktor
-    implementation("io.ktor:ktor-server-core:2.2.2")
-    implementation("io.ktor:ktor-server-netty:2.2.2")
-    implementation("io.ktor:ktor-server-auth:2.2.2")
-    implementation("io.ktor:ktor-server-content-negotiation:2.2.2")
-    implementation("io.ktor:ktor-server-swagger:2.2.2")
-    implementation("ch.qos.logback:logback-classic:1.2.3")
+    val ktorVersion = "2.2.2"
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
+    implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
+    implementation("ch.qos.logback:logback-classic:1.3.5")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.8.0")
 
     // serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs = listOf(
-            "-Xcontext-receivers",
-        )
     }
 }
 

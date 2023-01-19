@@ -4,8 +4,10 @@ import co.q64.faktorio.FaktorioDsl
 import co.q64.faktorio.argument.StringArgumentParser
 import co.q64.faktorio.argument.typedArgument
 import co.q64.faktorio.internal.ArgumentProcessor
+import co.q64.faktorio.internal.endpoints
 import co.q64.faktorio.internal.scopeHandler
 import co.q64.faktorio.util.Buildable
+import co.q64.faktorio.util.path
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -13,13 +15,15 @@ import io.ktor.server.application.call
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
-import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
-import kotlin.coroutines.cancellation.CancellationException
+import io.swagger.v3.oas.models.responses.ApiResponse
+import io.swagger.v3.oas.models.responses.ApiResponses
+import io.swagger.v3.oas.models.security.SecurityRequirement
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -36,22 +40,19 @@ class Endpoint(
     private var call: (() -> Call)? = null
 ) : Buildable<Operation> {
 
-    val arguments: List<Argument<*>>
-        get() = call?.invoke()?.arguments.orEmpty()
+    val arguments get() = call?.invoke()?.arguments.orEmpty()
+    val path get() = route.path
 
     @FaktorioDsl
     fun call(closure: Call.() -> Unit) {
-        call = { Call().apply(closure).apply() }
+        call = { Call().apply(closure).configure() }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
         scope?.let {
             if (!call.scopeHandler(this, it)) {
                 if (secret) throw NotFoundException()
-                else {
-                    call.respond(HttpStatusCode.Unauthorized, "Missing required scope \"${it.name}\".")
-                    throw CancellationException()
-                }
+                else return call.respond(HttpStatusCode.Unauthorized)
             }
         }
         val handler = this@Endpoint.call?.invoke() ?: return
@@ -60,23 +61,30 @@ class Endpoint(
         handler.request?.let { it() }
     }
 
-    internal fun apply() = apply {
+    internal fun configure() = apply {
         route.apply {
             method(method) {
                 handle {
-                    runCatching { processCall() }
+                    processCall()
                 }
             }
         }
     }
 
-    override fun build() = Operation().also { op ->
-        op.summary(summary)
+    override fun build() = Operation().also { operation ->
+        operation
+            .summary(summary)
             .description(description)
 
-        call?.invoke()?.let { call ->
-            op.parameters(call.arguments.map { it.build() })
+        call?.invoke()?.let {
+            operation.responses(ApiResponses().apply {
+                it.responses.forEach { res ->
+                    addApiResponse("${res.code.value}", res.build())
+                }
+            })
         }
+        scope?.let { operation.addSecurityItem(SecurityRequirement().addList(it.id)) }
+        operation.parameters(arguments.map(Argument<*>::build))
     }
 
     class Call(
@@ -117,7 +125,7 @@ class Endpoint(
             request = closure
         }
 
-        internal fun apply() = apply {
+        internal fun configure() = apply {
             arguments.forEach { with(it.parser) { properties() } }
         }
 
@@ -125,7 +133,12 @@ class Endpoint(
             val code: HttpStatusCode,
             var description: String? = null,
             var example: Any? = null
-        )
+        ) : Buildable<ApiResponse> {
+            override fun build() = ApiResponse().also { response ->
+                response.description = description
+                // TODO have schema setup here
+            }
+        }
 
     }
 
@@ -211,5 +224,5 @@ class Endpoint(
 @FaktorioDsl
 fun Route.endpoint(path: String? = null, closure: Endpoint.() -> Unit) {
     val route = (path?.let { createRouteFromPath(it) } ?: this)
-    Endpoint(route).apply(closure).apply()
+    application.endpoints += Endpoint(route).apply(closure).configure()
 }
