@@ -10,7 +10,11 @@ import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.util.pipeline.PipelineContext
 
-typealias ScopeHandler = suspend PipelineContext<*, ApplicationCall>.(APIScope) -> Boolean
+@DslMarker
+annotation class FaktorioDsl
+
+@RequiresOptIn
+annotation class FaktorioExperimental
 
 val Faktorio = createApplicationPlugin("Faktorio", ::FaktorioConfig) {
     application.attributes.put(SchemaRegistryKey, pluginConfig.registeredSchemas)

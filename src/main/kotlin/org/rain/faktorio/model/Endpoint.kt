@@ -11,6 +11,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.util.pipeline.PipelineContext
+import org.rain.faktorio.FaktorioExperimental
+import org.rain.faktorio.util.InferBody
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -40,23 +42,24 @@ interface Endpoint {
         @FaktorioDsl
         fun request(closure: RequestHandler)
 
+
         @FaktorioDsl
         fun <T : Any> response(
             code: HttpStatusCode = HttpStatusCode.OK,
             type: KClass<T>? = null,
-            closure: Response<T>.() -> Unit
+            closure: Response<T>.() -> Unit = {}
         )
 
         @FaktorioDsl
         fun response(
             code: HttpStatusCode = HttpStatusCode.OK,
-            closure: Response<Nothing>.() -> Unit
+            closure: Response<Nothing>.() -> Unit = {}
         ) = response<Nothing>(code, closure = closure)
 
         @FaktorioDsl
         fun <T : Any> body(
             type: KClass<T>,
-            closure: Body<T>.() -> Unit
+            closure: Body<T>.() -> Unit = {}
         )
 
         operator fun <T> Argument<T>.provideDelegate(ref: Nothing?, prop: KProperty<*>): Argument<T>
@@ -89,7 +92,7 @@ interface Endpoint {
 
             @FaktorioDsl
             inline fun <reified T : Any> Call.body(
-                noinline closure: Body<T>.() -> Unit
+                noinline closure: Body<T>.() -> Unit = {}
             ) = body(T::class, closure)
         }
     }

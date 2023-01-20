@@ -1,15 +1,19 @@
 package org.rain.faktorio
 
+import io.ktor.server.application.ApplicationCall
 import org.rain.faktorio.argument.TypedArguments
 import org.rain.faktorio.model.Endpoint
 import org.rain.faktorio.schemas.SchemaConfiguration
 import org.rain.faktorio.util.defauled
 import io.ktor.server.plugins.swagger.SwaggerConfig
+import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.media.Schema
+import org.rain.faktorio.model.APIScope
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 import kotlin.reflect.typeOf
 
+typealias ScopeHandler = suspend PipelineContext<*, ApplicationCall>.(APIScope) -> Boolean
 
 class FaktorioConfig {
 

@@ -1,19 +1,20 @@
 package org.rain.faktorio
 
-import org.rain.faktorio.model.APIScope
-import org.rain.faktorio.model.Endpoint.Call.Companion.body
-import org.rain.faktorio.model.Endpoint.Call.Companion.parameter
-import org.rain.faktorio.model.endpoint
-import org.rain.faktorio.schemas.property
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.response.respond
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
+import org.rain.faktorio.model.APIScope
+import org.rain.faktorio.model.Endpoint.Call.Companion.parameter
+import org.rain.faktorio.model.endpoint
+import org.rain.faktorio.schemas.property
+import org.rain.faktorio.util.InferResponse
+import org.rain.faktorio.util.request
+import org.rain.faktorio.util.respond
 import java.util.UUID
 
 object TestScopes : APIScope.Library {
@@ -67,16 +68,13 @@ fun a(): Unit = runBlocking {
                         val name by parameter<String>()
                         val glitchy by parameter<Boolean>()
 
-                        body<Test> {
-                            description = "The body"
-                        }
-
                         response<Test> {
                             description = "All of your utilities"
                         }
 
-                        request {
-                            call.respond("Hello $name, you are ${if (glitchy) "glitchy" else "antiglitchy"}.")
+                        @OptIn(FaktorioExperimental::class)
+                        request(InferResponse) {
+                            call.respond(Test("", 23, true, UUID.randomUUID(), emptyList(), Test.Type.Glitchy))
                         }
                     }
                 }
