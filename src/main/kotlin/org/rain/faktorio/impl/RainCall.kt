@@ -15,7 +15,7 @@ class RainCall(
     @PublishedApi internal val arguments: MutableList<RainArgument<*>> = mutableListOf(),
     @PublishedApi internal var body: RainBody<*>? = null,
     internal var request: RequestHandler? = null
-) : Endpoint.Call {
+) : Endpoint.Call._Internal {
     override fun parameter(
         name: String?,
         description: String?,
@@ -29,14 +29,6 @@ class RainCall(
         closure: Endpoint.Call.Response<T>.() -> Unit
     ) {
         responses += RainResponse(code, type = type).apply(closure)
-    }
-
-    @JvmName("responseWithType")
-    inline fun <reified T : Any> response(
-        code: HttpStatusCode = HttpStatusCode.OK,
-        closure: RainResponse<T>.() -> Unit
-    ) {
-        responses += RainResponse(code, type = T::class).apply(closure)
     }
 
     override fun <T : Any> body(type: KClass<T>, closure: Endpoint.Call.Body<T>.() -> Unit) {

@@ -10,6 +10,7 @@ import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.util.pipeline.PipelineContext
 import org.rain.faktorio.argument.argumentParser
+import org.rain.faktorio.endpoint.Endpoint.Call.Companion.response
 import org.rain.faktorio.scope.APIScope
 import org.rain.faktorio.util.ApplicationContext
 import kotlin.reflect.KClass
@@ -33,34 +34,10 @@ interface Endpoint : ApplicationContext {
     fun call(closure: Call.() -> Unit)
 
     interface Call : ApplicationContext {
-        fun parameter(
-            name: String? = null,
-            description: String? = null,
-            type: Argument.Type = Argument.Type.Query,
-        ): Argument<String>
 
         @FaktorioDsl
         fun request(closure: RequestHandler)
 
-
-        @FaktorioDsl
-        fun <T : Any> response(
-            code: HttpStatusCode = HttpStatusCode.OK,
-            type: KClass<T>? = null,
-            closure: Response<T>.() -> Unit = {}
-        )
-
-        @FaktorioDsl
-        fun response(
-            code: HttpStatusCode = HttpStatusCode.OK,
-            closure: Response<Nothing>.() -> Unit = {}
-        ) = response<Nothing>(code, closure = closure)
-
-        @FaktorioDsl
-        fun <T : Any> body(
-            type: KClass<T>,
-            closure: Body<T>.() -> Unit = {}
-        )
 
         operator fun <T> Argument<T>.provideDelegate(ref: Nothing?, prop: KProperty<*>): Argument<T>
         operator fun <T> Argument<T>.getValue(ref: Nothing?, prop: KProperty<*>): T
@@ -75,25 +52,51 @@ interface Endpoint : ApplicationContext {
             var description: String?
         }
 
+        interface _Internal : Call {
+            fun <T : Any> body(
+                type: KClass<T>,
+                closure: Body<T>.() -> Unit = {}
+            )
+
+            fun <T : Any> response(
+                code: HttpStatusCode = HttpStatusCode.OK,
+                type: KClass<T>? = null,
+                closure: Response<T>.() -> Unit = {}
+            )
+
+            fun parameter(
+                name: String? = null,
+                description: String? = null,
+                type: Argument.Type = Argument.Type.Query,
+            ): Argument<String>
+        }
+
         companion object {
-            @JvmName("reifiedParameter")
+
+            @FaktorioDsl @JvmName("reifiedParameter")
             inline fun <reified T> Call.parameter(
                 name: String? = null,
                 description: String? = null,
                 type: Argument.Type = Argument.Type.Query,
-                parser: Argument.Parser<T> = application.argumentParser<T>()
-            ) = parameter(name, description, type).parsed(parser)
+                parser: Argument.Parser<T> = application.argumentParser()
+            ) = (this as _Internal).parameter(name, description, type).parsed(parser)
 
             @FaktorioDsl
             inline fun <reified T : Any> Call.response(
                 code: HttpStatusCode = HttpStatusCode.OK,
-                noinline closure: Response<T>.() -> Unit
-            ) = response(code, T::class, closure)
+                noinline closure: Response<T>.() -> Unit = {}
+            ) = (this as _Internal).response(code, T::class, closure)
+
+            @FaktorioDsl @JvmName("statusResponse")
+            fun Call.response(
+                code: HttpStatusCode = HttpStatusCode.OK,
+                closure: Response<Nothing>.() -> Unit = {}
+            ) = (this as _Internal).response(code, closure = closure)
 
             @FaktorioDsl
             inline fun <reified T : Any> Call.body(
                 noinline closure: Body<T>.() -> Unit = {}
-            ) = body(T::class, closure)
+            ) = (this as _Internal).body(T::class, closure)
         }
     }
 
@@ -112,7 +115,7 @@ interface Endpoint : ApplicationContext {
         fun example(example: T): Argument<T>
 
         companion object {
-            inline fun <T, reified R> Endpoint.Argument<T>.map(crossinline functor: (T) -> R) =
+            inline fun <T, reified R> Argument<T>.map(crossinline functor: (T) -> R) =
                 parsed(Parser { functor(parser.parse(it)) })
         }
 
