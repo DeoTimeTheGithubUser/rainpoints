@@ -2,10 +2,6 @@
 
 package org.rain.faktorio.swagger
 
-import org.rain.faktorio.FaktorioConfig
-import org.rain.faktorio.impl.RainEndpoint
-import org.rain.faktorio.internal.endpoints
-import org.rain.faktorio.util.swag
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.ContentType
@@ -30,6 +26,10 @@ import kotlinx.html.link
 import kotlinx.html.script
 import kotlinx.html.title
 import kotlinx.html.unsafe
+import org.rain.faktorio.FaktorioConfig
+import org.rain.faktorio.impl.RainEndpoint
+import org.rain.faktorio.internal.endpoints
+import org.rain.faktorio.util.swag
 
 class SwaggerRoute(private val config: FaktorioConfig) {
 
@@ -42,6 +42,7 @@ class SwaggerRoute(private val config: FaktorioConfig) {
     fun route(app: Application) {
         val paths = Paths().apply {
             app.endpoints
+                .asSequence()
                 .filter { !it.secret }
                 .filterIsInstance<RainEndpoint>()
                 .toList().groupBy { it.path }
@@ -52,8 +53,12 @@ class SwaggerRoute(private val config: FaktorioConfig) {
                         }
                     })
                 }
+                .toList()
         }
-        val api = OpenAPI().apply { paths(paths) }
+        val api = OpenAPI().apply {
+            info = config.swagger.info
+            paths(paths)
+        }
         app.routing {
             configureSwagger(mapper.writeValueAsString(api))
         }

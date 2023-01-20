@@ -24,6 +24,7 @@ interface Endpoint {
     var method: HttpMethod
     var secret: Boolean
     var scope: APIScope?
+    var category: String?
     val path: String
     val arguments: List<Argument<*>>
 

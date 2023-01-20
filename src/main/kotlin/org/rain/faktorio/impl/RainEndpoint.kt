@@ -28,6 +28,7 @@ class RainEndpoint(
     override var method: HttpMethod = HttpMethod.Get,
     override var secret: Boolean = false,
     override var scope: APIScope? = null,
+    override var category: String? = null,
     private var call: (() -> RainCall)? = null
 ) : Endpoint, Buildable<Operation> {
 
@@ -62,6 +63,7 @@ class RainEndpoint(
     }
 
     override fun build(context: Application) = Operation().also { operation ->
+        operation.addTagsItem(category)
         operation
             .summary(summary)
             .description(description)

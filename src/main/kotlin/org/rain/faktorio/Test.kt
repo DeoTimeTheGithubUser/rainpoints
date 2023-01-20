@@ -5,10 +5,12 @@ import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.response.respond
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import org.rain.faktorio.model.APIScope
+import org.rain.faktorio.model.Endpoint.Call.Companion.body
 import org.rain.faktorio.model.Endpoint.Call.Companion.parameter
 import org.rain.faktorio.model.endpoint
 import org.rain.faktorio.schemas.property
@@ -37,11 +39,9 @@ data class Test(
     }
 }
 
-fun main() {
-}
-
-fun a(): Unit = runBlocking {
-    embeddedServer(Netty, port = 8080) {
+fun main(): Unit = runBlocking {
+    println("ok")
+    embeddedServer(Netty, port = 8081) {
 
         install(Faktorio) {
             scoped { true }
@@ -54,6 +54,13 @@ fun a(): Unit = runBlocking {
                         description = "This is the name of the test!"
                         deprecated = true
                     }
+                }
+            }
+            swagger {
+                info {
+                    title = "Test api"
+                    description = "This is a test api"
+                    termsOfService = "Glitching stacks is prohibited"
                 }
             }
         }
@@ -72,8 +79,9 @@ fun a(): Unit = runBlocking {
                             description = "All of your utilities"
                         }
 
-                        @OptIn(FaktorioExperimental::class)
-                        request(InferResponse) {
+                        body<Test>()
+
+                        request {
                             call.respond(Test("", 23, true, UUID.randomUUID(), emptyList(), Test.Type.Glitchy))
                         }
                     }
