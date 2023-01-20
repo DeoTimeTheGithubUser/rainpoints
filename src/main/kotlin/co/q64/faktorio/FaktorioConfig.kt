@@ -3,12 +3,10 @@ package co.q64.faktorio
 import co.q64.faktorio.argument.TypedArguments
 import co.q64.faktorio.model.Endpoint
 import co.q64.faktorio.schemas.SchemaConfiguration
-import co.q64.faktorio.schemas.SchemaFactory
 import co.q64.faktorio.util.defauled
 import io.ktor.server.plugins.swagger.SwaggerConfig
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 

@@ -6,12 +6,9 @@ import co.q64.faktorio.argument.typedArgument
 import co.q64.faktorio.internal.ArgumentProcessor
 import co.q64.faktorio.internal.endpoints
 import co.q64.faktorio.internal.scopeHandler
-import co.q64.faktorio.schemas.SchemaRegistryKey
-import co.q64.faktorio.schemas.registeredSchema
-import co.q64.faktorio.schemas.schemaConfiguration
+import co.q64.faktorio.schemas.SchemaFactory.schemaContent
 import co.q64.faktorio.util.Buildable
 import co.q64.faktorio.util.path
-import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -26,9 +23,8 @@ import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
-import io.swagger.v3.oas.models.media.Content
-import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.parameters.Parameter
+import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
@@ -91,6 +87,7 @@ class Endpoint(
                     addApiResponse("${res.code.value}", res.build(context))
                 }
             })
+            operation.requestBody(it.body?.build(context))
         }
         scope?.let { operation.addSecurityItem(SecurityRequirement().addList(it.id)) }
         operation.parameters(arguments.map { it.build(context) })
@@ -99,6 +96,7 @@ class Endpoint(
     class Call(
         @PublishedApi internal val responses: MutableList<Response<*>> = mutableListOf(),
         @PublishedApi internal val arguments: MutableList<Argument<*>> = mutableListOf(),
+        @PublishedApi internal var body: Body<*>? = null,
         internal var request: RequestHandler? = null
     ) {
         fun parameter(
@@ -122,12 +120,19 @@ class Endpoint(
         }
 
         @FaktorioDsl
-        @JvmName("responseWithSchema")
+        @JvmName("responseWithType")
         inline fun <reified T : Any> response(
             code: HttpStatusCode = HttpStatusCode.OK,
             closure: Response<T>.() -> Unit
         ) {
-            responses += Response<T>(code, schema = T::class).apply(closure)
+            responses += Response(code, type = T::class).apply(closure)
+        }
+
+        @FaktorioDsl
+        inline fun <reified T : Any> body(
+            closure: Body<T>.() -> Unit
+        ) {
+            body = Body(type = T::class).apply(closure)
         }
 
         operator fun <T> Argument<T>.provideDelegate(ref: Any?, prop: KProperty<*>) =
@@ -147,26 +152,26 @@ class Endpoint(
             arguments.forEach { with(it.parser) { properties() } }
         }
 
-        data class Response<T>(
+        data class Body<T : Any>(
+            var description: String? = null,
+            var required: Boolean = true,
+            private val type: KClass<T>? = null
+        ) : Buildable<RequestBody> {
+            override fun build(context: Application) = RequestBody().also { req ->
+                req.description = description
+                req.required = required
+                type?.let { req.content(context.schemaContent(it)) }
+            }
+        }
+
+        data class Response<T : Any>(
             val code: HttpStatusCode,
             var description: String? = null,
-            var example: T? = null,
-            var schema: KClass<*>? = null
+            private val type: KClass<T>? = null
         ) : Buildable<ApiResponse> {
             override fun build(context: Application) = ApiResponse().also { response ->
                 response.description = description
-                schema?.let { type ->
-                    context.registeredSchema(type).let {
-                        response.content(
-                            Content()
-                                .addMediaType(
-                                    "${ContentType.Application.Json}",
-                                    MediaType().schema(it)
-                                )
-                        )
-                    }
-                }
-
+                type?.let { response.content(context.schemaContent(it)) }
             }
         }
 

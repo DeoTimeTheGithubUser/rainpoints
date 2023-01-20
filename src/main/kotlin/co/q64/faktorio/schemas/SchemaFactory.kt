@@ -1,10 +1,13 @@
 package co.q64.faktorio.schemas
 
+import io.ktor.http.ContentType
+import io.ktor.server.application.Application
+import io.swagger.v3.oas.models.media.Content
+import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.XML
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
@@ -80,6 +83,13 @@ internal object SchemaFactory {
         }
     }
 
+    fun Application.schemaContent(type: KClass<*>) = registeredSchema(type).let {
+        Content()
+            .addMediaType(
+                "${ContentType.Application.Json}",
+                MediaType().schema(it)
+            )
+    }
 
     private infix fun KClass<*>.instance(other: KClass<*>) =
         other.java.isAssignableFrom(java)

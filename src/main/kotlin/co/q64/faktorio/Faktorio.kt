@@ -6,7 +6,6 @@ import co.q64.faktorio.schemas.SchemaRegistryKey
 import co.q64.faktorio.swagger.SwaggerRoute
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStarting
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.util.pipeline.PipelineContext

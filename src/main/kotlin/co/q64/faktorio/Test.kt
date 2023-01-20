@@ -38,7 +38,7 @@ fun main(): Unit = runBlocking {
     embeddedServer(Netty, port = 8080) {
 
         install(Faktorio) {
-            scoped { false }
+            scoped { true }
             registerSchema {
                 property(Test::amount) {
                     maximum = (100).toBigDecimal()
@@ -49,6 +49,7 @@ fun main(): Unit = runBlocking {
                 }
             }
         }
+
         routing {
             route("/test/hello/ok") {
                 endpoint {
@@ -59,6 +60,9 @@ fun main(): Unit = runBlocking {
                         val name by parameter<String>()
                         val glitchy by parameter<Boolean>()
 
+                        body<Test> {
+                            description = "The body"
+                        }
                         response<Test> {
                             description = "All of your utilities"
                         }
