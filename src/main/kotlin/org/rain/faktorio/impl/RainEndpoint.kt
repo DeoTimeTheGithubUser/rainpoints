@@ -1,10 +1,9 @@
 package org.rain.faktorio.impl
 
-import org.rain.faktorio.FaktorioDsl
-import org.rain.faktorio.internal.ArgumentProcessor
-import org.rain.faktorio.internal.scopeHandler
-import org.rain.faktorio.model.APIScope
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.argument.ArgumentProcessor
+import org.rain.faktorio.scope.scopeHandler
+import org.rain.faktorio.scope.APIScope
+import org.rain.faktorio.endpoint.Endpoint
 import org.rain.faktorio.util.Buildable
 import org.rain.faktorio.util.path
 import io.ktor.http.HttpMethod
@@ -15,6 +14,7 @@ import io.ktor.server.application.call
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
@@ -23,6 +23,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 
 class RainEndpoint(
     private val route: Route,
+    override val application: Application = route.application,
     override var summary: String? = null,
     override var description: String? = null,
     override var method: HttpMethod = HttpMethod.Get,
@@ -36,7 +37,7 @@ class RainEndpoint(
     override val path get() = route.path
 
     override fun call(closure: Endpoint.Call.() -> Unit) {
-        call = { RainCall().apply(closure).configure() }
+        call = { RainCall(application).apply(closure).configure() }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.processCall() {

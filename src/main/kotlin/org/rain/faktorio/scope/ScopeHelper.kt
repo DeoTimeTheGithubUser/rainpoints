@@ -1,4 +1,4 @@
-package org.rain.faktorio.internal
+package org.rain.faktorio.scope
 
 import org.rain.faktorio.ScopeHandler
 import io.ktor.server.application.ApplicationCall

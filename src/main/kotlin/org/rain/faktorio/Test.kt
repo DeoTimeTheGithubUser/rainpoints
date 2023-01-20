@@ -9,14 +9,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
-import org.rain.faktorio.model.APIScope
-import org.rain.faktorio.model.Endpoint.Call.Companion.body
-import org.rain.faktorio.model.Endpoint.Call.Companion.parameter
-import org.rain.faktorio.model.endpoint
+import org.rain.faktorio.endpoint.Endpoint
+import org.rain.faktorio.scope.APIScope
+import org.rain.faktorio.endpoint.Endpoint.Call.Companion.body
+import org.rain.faktorio.endpoint.Endpoint.Call.Companion.parameter
+import org.rain.faktorio.endpoint.endpoint
 import org.rain.faktorio.schemas.property
-import org.rain.faktorio.util.InferResponse
-import org.rain.faktorio.util.request
-import org.rain.faktorio.util.respond
 import java.util.UUID
 
 object TestScopes : APIScope.Library {
@@ -54,6 +52,11 @@ fun main(): Unit = runBlocking {
                         description = "This is the name of the test!"
                         deprecated = true
                     }
+                }
+            }
+            arguments {
+                +Endpoint.Argument.Parser<Test> {
+                    error("Test is too glitchy to be parsed")
                 }
             }
             swagger {

@@ -1,6 +1,6 @@
 package org.rain.faktorio.impl
 
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import org.rain.faktorio.util.Buildable
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -8,6 +8,7 @@ import io.ktor.server.plugins.BadRequestException
 import io.swagger.v3.oas.models.parameters.Parameter
 
 data class RainArgument<T> @PublishedApi internal constructor(
+    override val application: Application,
     override val name: String?,
     override val paramType: Endpoint.Argument.Type,
     override val parser: Endpoint.Argument.Parser<T>,

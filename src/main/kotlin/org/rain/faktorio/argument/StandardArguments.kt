@@ -1,6 +1,6 @@
 package org.rain.faktorio.argument
 
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -9,15 +9,8 @@ import java.util.UUID
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
-private fun badRequest(reason: String): Endpoint.Call.() -> Unit = {
-    response(HttpStatusCode.BadRequest) {
-        description = reason
-    }
-}
-
 @PublishedApi
-internal val TypedArguments: MutableMap<KType, Endpoint.Argument.Parser<*>> =
-    // Standard arguments
+internal val StandardArguments: Map<KType, Endpoint.Argument.Parser<*>> =
     listOf(
         StringArgumentParser,
         IntArgumentParser,
@@ -25,13 +18,7 @@ internal val TypedArguments: MutableMap<KType, Endpoint.Argument.Parser<*>> =
         DoubleArgumentParser,
         BooleanArgumentParser,
         UUIDArgumentParser
-    ).associateBy { it.type }.toMutableMap()
-
-@Suppress("UNCHECKED_CAST")
-@PublishedApi
-internal inline fun <reified T> typedArgument() =
-    (TypedArguments[typeOf<T>()] as? Endpoint.Argument.Parser<T>)
-        ?: JsonArgumentParser(typeOf<T>(), serializer())
+    ).associateBy { it.type }
 
 object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argument.Parser { it })
 object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser(parse = String::toInt))

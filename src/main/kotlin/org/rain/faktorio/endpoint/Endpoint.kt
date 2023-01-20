@@ -1,9 +1,7 @@
-package org.rain.faktorio.model
+package org.rain.faktorio.endpoint
 
 import org.rain.faktorio.FaktorioDsl
-import org.rain.faktorio.argument.typedArgument
 import org.rain.faktorio.impl.RainEndpoint
-import org.rain.faktorio.internal.endpoints
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -11,6 +9,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.util.pipeline.PipelineContext
+import org.rain.faktorio.argument.argumentParser
+import org.rain.faktorio.scope.APIScope
+import org.rain.faktorio.util.ApplicationContext
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -18,7 +19,7 @@ import kotlin.reflect.typeOf
 
 typealias RequestHandler = suspend PipelineContext<*, ApplicationCall>.() -> Unit
 
-interface Endpoint {
+interface Endpoint : ApplicationContext {
     var summary: String?
     var description: String?
     var method: HttpMethod
@@ -31,7 +32,7 @@ interface Endpoint {
     @FaktorioDsl
     fun call(closure: Call.() -> Unit)
 
-    interface Call {
+    interface Call : ApplicationContext {
         fun parameter(
             name: String? = null,
             description: String? = null,
@@ -80,7 +81,7 @@ interface Endpoint {
                 name: String? = null,
                 description: String? = null,
                 type: Argument.Type = Argument.Type.Query,
-                parser: Argument.Parser<T> = typedArgument()
+                parser: Argument.Parser<T> = application.argumentParser<T>()
             ) = parameter(name, description, type).parsed(parser)
 
             @FaktorioDsl
@@ -96,7 +97,7 @@ interface Endpoint {
         }
     }
 
-    interface Argument<T> {
+    interface Argument<T> : ApplicationContext {
         val name: String?
         val paramType: Type
         val parser: Parser<T>

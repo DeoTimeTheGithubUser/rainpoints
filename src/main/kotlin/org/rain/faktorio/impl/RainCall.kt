@@ -2,13 +2,15 @@ package org.rain.faktorio.impl
 
 import org.rain.faktorio.FaktorioDsl
 import org.rain.faktorio.argument.StringArgumentParser
-import org.rain.faktorio.model.Endpoint
-import org.rain.faktorio.model.RequestHandler
+import org.rain.faktorio.endpoint.Endpoint
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import org.rain.faktorio.endpoint.RequestHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 class RainCall(
+    override val application: Application,
     @PublishedApi internal val responses: MutableList<RainResponse<*>> = mutableListOf(),
     @PublishedApi internal val arguments: MutableList<RainArgument<*>> = mutableListOf(),
     @PublishedApi internal var body: RainBody<*>? = null,
@@ -19,7 +21,7 @@ class RainCall(
         description: String?,
         type: Endpoint.Argument.Type
     ): Endpoint.Argument<String> =
-        (RainArgument(name, type, StringArgumentParser, description))
+        (RainArgument(application, name, type, StringArgumentParser, description))
 
     override fun <T : Any> response(
         code: HttpStatusCode,

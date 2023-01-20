@@ -1,4 +1,4 @@
-package org.rain.faktorio.model
+package org.rain.faktorio.scope
 
 interface APIScope {
 

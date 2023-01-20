@@ -1,13 +1,13 @@
 package org.rain.faktorio
 
 import io.ktor.server.application.ApplicationCall
-import org.rain.faktorio.argument.TypedArguments
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import org.rain.faktorio.schemas.SchemaConfiguration
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.info.Info
-import org.rain.faktorio.model.APIScope
+import org.rain.faktorio.scope.APIScope
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 typealias ScopeHandler = suspend PipelineContext<*, ApplicationCall>.(APIScope) -> Boolean
@@ -16,6 +16,7 @@ class FaktorioConfig {
 
     internal var scopeHandler: ScopeHandler = { false }
     internal val registeredSchemas: MutableMap<KClass<*>, SchemaConfiguration<*>> = mutableMapOf()
+    internal val registeredParsers: MutableMap<KType, Endpoint.Argument.Parser<*>> = mutableMapOf()
     internal var swagger: Swagger = Swagger()
 
 
@@ -31,8 +32,8 @@ class FaktorioConfig {
         registeredSchemas.putAll(SchemaRegistry().apply(closure).schemas)
     }
 
-    inline fun <reified T> argumentParser(default: Endpoint.Argument.Parser<T>) {
-        TypedArguments[typeOf<T>()] = default
+    fun arguments(closure: ArgumentRegistry.() -> Unit) {
+        registeredParsers.putAll(ArgumentRegistry().apply(closure).parsers)
     }
 
     data class Swagger(
@@ -45,6 +46,15 @@ class FaktorioConfig {
     ) {
         fun info(closure: Info.() -> Unit) {
             info = Info().apply(closure)
+        }
+    }
+
+    @JvmInline
+    value class ArgumentRegistry(
+        val parsers: MutableMap<KType, Endpoint.Argument.Parser<*>> = mutableMapOf()
+    ) {
+        inline operator fun <reified T> Endpoint.Argument.Parser<T>.unaryPlus() {
+            parsers[typeOf<T>()] = this
         }
     }
 

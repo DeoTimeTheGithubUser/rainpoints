@@ -1,6 +1,5 @@
-package org.rain.faktorio.internal
+package org.rain.faktorio.endpoint
 
-import org.rain.faktorio.model.Endpoint
 import io.ktor.server.application.Application
 import io.ktor.util.AttributeKey
 

@@ -1,6 +1,6 @@
 package org.rain.faktorio.impl
 
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import org.rain.faktorio.schemas.SchemaFactory.schemaContent
 import org.rain.faktorio.util.Buildable
 import io.ktor.server.application.Application

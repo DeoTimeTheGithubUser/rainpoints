@@ -1,7 +1,7 @@
-package org.rain.faktorio.internal
+package org.rain.faktorio.argument
 
 import org.rain.faktorio.impl.RainArgument
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.BadRequestException

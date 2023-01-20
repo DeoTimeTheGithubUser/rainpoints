@@ -4,7 +4,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.util.pipeline.PipelineContext
 import org.rain.faktorio.FaktorioDsl
 import org.rain.faktorio.FaktorioExperimental
-import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.endpoint.Endpoint
 import io.ktor.server.response.respond as _respond
 
 @FaktorioExperimental

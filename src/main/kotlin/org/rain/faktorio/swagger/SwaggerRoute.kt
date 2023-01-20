@@ -28,7 +28,7 @@ import kotlinx.html.title
 import kotlinx.html.unsafe
 import org.rain.faktorio.FaktorioConfig
 import org.rain.faktorio.impl.RainEndpoint
-import org.rain.faktorio.internal.endpoints
+import org.rain.faktorio.endpoint.endpoints
 import org.rain.faktorio.util.swag
 
 class SwaggerRoute(private val config: FaktorioConfig) {
