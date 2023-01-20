@@ -1,4 +1,4 @@
-package co.q64.faktorio.schemas
+package org.rain.faktorio.schemas
 
 import io.ktor.http.ContentType
 import io.ktor.server.application.Application
@@ -54,7 +54,6 @@ internal object SchemaFactory {
                 clazz.java.componentType.kotlin.createType().let {
                     items(Schema<Any>().apply { useType(it) })
                 }
-
             }
 
             // advanced types

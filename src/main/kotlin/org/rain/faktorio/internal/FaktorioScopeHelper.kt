@@ -1,6 +1,6 @@
-package co.q64.faktorio.internal
+package org.rain.faktorio.internal
 
-import co.q64.faktorio.ScopeHandler
+import org.rain.faktorio.ScopeHandler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.AttributeKey
 

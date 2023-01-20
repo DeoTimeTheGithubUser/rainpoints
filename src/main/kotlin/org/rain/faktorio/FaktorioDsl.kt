@@ -1,4 +1,4 @@
-package co.q64.faktorio
+package org.rain.faktorio
 
 @DslMarker
 annotation class FaktorioDsl

@@ -1,4 +1,4 @@
-package co.q64.faktorio.model
+package org.rain.faktorio.model
 
 interface APIScope {
 

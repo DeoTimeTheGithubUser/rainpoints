@@ -1,9 +1,9 @@
-package co.q64.faktorio
+package org.rain.faktorio
 
-import co.q64.faktorio.internal.scopeHandler
-import co.q64.faktorio.model.APIScope
-import co.q64.faktorio.schemas.SchemaRegistryKey
-import co.q64.faktorio.swagger.SwaggerRoute
+import org.rain.faktorio.internal.scopeHandler
+import org.rain.faktorio.model.APIScope
+import org.rain.faktorio.schemas.SchemaRegistryKey
+import org.rain.faktorio.swagger.SwaggerRoute
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.createApplicationPlugin

@@ -1,4 +1,4 @@
-package co.q64.faktorio.util
+package org.rain.faktorio.util
 
 import io.ktor.server.routing.Route
 

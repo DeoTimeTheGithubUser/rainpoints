@@ -1,4 +1,4 @@
-package co.q64.faktorio.util
+package org.rain.faktorio.util
 
 import kotlin.properties.Delegates
 

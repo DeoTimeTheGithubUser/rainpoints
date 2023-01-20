@@ -1,8 +1,10 @@
-package co.q64.faktorio
+package org.rain.faktorio
 
-import co.q64.faktorio.model.APIScope
-import co.q64.faktorio.model.endpoint
-import co.q64.faktorio.schemas.property
+import org.rain.faktorio.model.APIScope
+import org.rain.faktorio.model.Endpoint.Call.Companion.body
+import org.rain.faktorio.model.Endpoint.Call.Companion.parameter
+import org.rain.faktorio.model.endpoint
+import org.rain.faktorio.schemas.property
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -34,18 +36,23 @@ data class Test(
     }
 }
 
-fun main(): Unit = runBlocking {
+fun main() {
+}
+
+fun a(): Unit = runBlocking {
     embeddedServer(Netty, port = 8080) {
 
         install(Faktorio) {
             scoped { true }
-            registerSchema {
-                property(Test::amount) {
-                    maximum = (100).toBigDecimal()
-                }
-                property(Test::name) {
-                    description = "This is the name of the test!"
-                    deprecated = true
+            schemas {
+                register {
+                    property(Test::amount) {
+                        maximum = (100).toBigDecimal()
+                    }
+                    property(Test::name) {
+                        description = "This is the name of the test!"
+                        deprecated = true
+                    }
                 }
             }
         }
@@ -63,6 +70,7 @@ fun main(): Unit = runBlocking {
                         body<Test> {
                             description = "The body"
                         }
+
                         response<Test> {
                             description = "All of your utilities"
                         }

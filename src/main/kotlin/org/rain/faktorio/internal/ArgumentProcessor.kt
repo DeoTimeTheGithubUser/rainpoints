@@ -1,6 +1,7 @@
-package co.q64.faktorio.internal
+package org.rain.faktorio.internal
 
-import co.q64.faktorio.model.Endpoint
+import org.rain.faktorio.impl.RainArgument
+import org.rain.faktorio.model.Endpoint
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.BadRequestException
@@ -29,7 +30,7 @@ internal class ArgumentProcessor(
         }.getOrElse { throw BadRequestException("Could not parse parameter \"$name\" to type ${argument.parser.type}: ${it.message}") }
     }
 
-    suspend fun <T> processParameter(argument: Endpoint.Argument<T>) {
+    suspend fun <T> processParameter(argument: RainArgument<T>) {
         argument.apply { value = buildArgument(this) }
     }
 

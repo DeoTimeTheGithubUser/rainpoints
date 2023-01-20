@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-group = "co.q64.faktorio"
+group = "org.rain.faktorio"
 version = "1.0.0"
 
 repositories {

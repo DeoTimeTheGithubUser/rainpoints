@@ -1,6 +1,6 @@
-package co.q64.faktorio.argument
+package org.rain.faktorio.argument
 
-import co.q64.faktorio.model.Endpoint
+import org.rain.faktorio.model.Endpoint
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json

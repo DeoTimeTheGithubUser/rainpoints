@@ -1,4 +1,4 @@
-package co.q64.faktorio.schemas
+package org.rain.faktorio.schemas
 
 import io.ktor.server.application.Application
 import io.ktor.util.AttributeKey

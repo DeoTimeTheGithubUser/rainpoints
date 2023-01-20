@@ -1,10 +1,11 @@
-package co.q64.faktorio
+package org.rain.faktorio
 
-import co.q64.faktorio.argument.TypedArguments
-import co.q64.faktorio.model.Endpoint
-import co.q64.faktorio.schemas.SchemaConfiguration
-import co.q64.faktorio.util.defauled
+import org.rain.faktorio.argument.TypedArguments
+import org.rain.faktorio.model.Endpoint
+import org.rain.faktorio.schemas.SchemaConfiguration
+import org.rain.faktorio.util.defauled
 import io.ktor.server.plugins.swagger.SwaggerConfig
+import io.swagger.v3.oas.models.media.Schema
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 import kotlin.reflect.typeOf
@@ -27,15 +28,22 @@ class FaktorioConfig {
         swagger = SwaggerConfig().apply(closure)
     }
 
-    fun <T : Any> registerSchema(type: KClass<T>, config: SchemaConfiguration<T>) {
-        registeredSchemas[type] = config
+    fun schemas(closure: SchemaRegistry.() -> Unit) {
+        registeredSchemas.putAll(SchemaRegistry().apply(closure).schemas)
     }
-
-    inline fun <reified T : Any> registerSchema(config: SchemaConfiguration<T>) =
-        registerSchema(T::class, config)
-
 
     inline fun <reified T> argumentParser(default: Endpoint.Argument.Parser<T>) {
         TypedArguments[typeOf<T>()] = default
+    }
+
+    @JvmInline
+    value class SchemaRegistry(
+        val schemas: MutableMap<KClass<*>, SchemaConfiguration<*>> = mutableMapOf()
+    ) {
+        inline operator fun <reified T> SchemaConfiguration<T>.unaryPlus() = register(this)
+
+        inline fun <reified T> register(config: SchemaConfiguration<T>) {
+            schemas[T::class] = config
+        }
     }
 }

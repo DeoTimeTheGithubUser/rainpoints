@@ -1,6 +1,6 @@
-package co.q64.faktorio.internal
+package org.rain.faktorio.internal
 
-import co.q64.faktorio.model.Endpoint
+import org.rain.faktorio.model.Endpoint
 import io.ktor.server.application.Application
 import io.ktor.util.AttributeKey
 

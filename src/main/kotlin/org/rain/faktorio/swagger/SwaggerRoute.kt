@@ -1,10 +1,11 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package co.q64.faktorio.swagger
+package org.rain.faktorio.swagger
 
-import co.q64.faktorio.FaktorioConfig
-import co.q64.faktorio.internal.endpoints
-import co.q64.faktorio.util.swag
+import org.rain.faktorio.FaktorioConfig
+import org.rain.faktorio.impl.RainEndpoint
+import org.rain.faktorio.internal.endpoints
+import org.rain.faktorio.util.swag
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.ContentType
@@ -40,7 +41,10 @@ class SwaggerRoute(private val config: FaktorioConfig) {
 
     fun route(app: Application) {
         val paths = Paths().apply {
-            app.endpoints.filter { !it.secret }.toList().groupBy { it.path }
+            app.endpoints
+                .filter { !it.secret }
+                .filterIsInstance<RainEndpoint>()
+                .toList().groupBy { it.path }
                 .map { (path, points) ->
                     addPathItem(path, PathItem().apply {
                         points.forEach { endpoint ->
