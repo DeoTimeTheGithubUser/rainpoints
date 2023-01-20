@@ -6,10 +6,15 @@ import co.q64.faktorio.argument.typedArgument
 import co.q64.faktorio.internal.ArgumentProcessor
 import co.q64.faktorio.internal.endpoints
 import co.q64.faktorio.internal.scopeHandler
+import co.q64.faktorio.schemas.SchemaRegistryKey
+import co.q64.faktorio.schemas.registeredSchema
+import co.q64.faktorio.schemas.schemaConfiguration
 import co.q64.faktorio.util.Buildable
 import co.q64.faktorio.util.path
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
@@ -21,10 +26,13 @@ import io.ktor.server.routing.createRouteFromPath
 import io.ktor.server.routing.method
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
+import io.swagger.v3.oas.models.media.Content
+import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -72,7 +80,7 @@ class Endpoint(
         }
     }
 
-    override fun build() = Operation().also { operation ->
+    override fun build(context: Application) = Operation().also { operation ->
         operation
             .summary(summary)
             .description(description)
@@ -80,16 +88,16 @@ class Endpoint(
         call?.invoke()?.let {
             operation.responses(ApiResponses().apply {
                 it.responses.forEach { res ->
-                    addApiResponse("${res.code.value}", res.build())
+                    addApiResponse("${res.code.value}", res.build(context))
                 }
             })
         }
         scope?.let { operation.addSecurityItem(SecurityRequirement().addList(it.id)) }
-        operation.parameters(arguments.map(Argument<*>::build))
+        operation.parameters(arguments.map { it.build(context) })
     }
 
     class Call(
-        internal val responses: MutableList<Response> = mutableListOf(),
+        @PublishedApi internal val responses: MutableList<Response<*>> = mutableListOf(),
         @PublishedApi internal val arguments: MutableList<Argument<*>> = mutableListOf(),
         internal var request: RequestHandler? = null
     ) {
@@ -109,8 +117,17 @@ class Endpoint(
         ) = parameter(name, description, type).parsed(parser)
 
         @FaktorioDsl
-        fun response(code: HttpStatusCode = HttpStatusCode.OK, closure: Response.() -> Unit) {
-            responses += Response(code).apply(closure)
+        fun response(code: HttpStatusCode = HttpStatusCode.OK, closure: Response<Nothing>.() -> Unit) {
+            responses += Response<Nothing>(code).apply(closure)
+        }
+
+        @FaktorioDsl
+        @JvmName("responseWithSchema")
+        inline fun <reified T : Any> response(
+            code: HttpStatusCode = HttpStatusCode.OK,
+            closure: Response<T>.() -> Unit
+        ) {
+            responses += Response<T>(code, schema = T::class).apply(closure)
         }
 
         operator fun <T> Argument<T>.provideDelegate(ref: Any?, prop: KProperty<*>) =
@@ -130,14 +147,26 @@ class Endpoint(
             arguments.forEach { with(it.parser) { properties() } }
         }
 
-        data class Response(
+        data class Response<T>(
             val code: HttpStatusCode,
             var description: String? = null,
-            var example: Any? = null
+            var example: T? = null,
+            var schema: KClass<*>? = null
         ) : Buildable<ApiResponse> {
-            override fun build() = ApiResponse().also { response ->
+            override fun build(context: Application) = ApiResponse().also { response ->
                 response.description = description
-                // TODO have schema setup here
+                schema?.let { type ->
+                    context.registeredSchema(type).let {
+                        response.content(
+                            Content()
+                                .addMediaType(
+                                    "${ContentType.Application.Json}",
+                                    MediaType().schema(it)
+                                )
+                        )
+                    }
+                }
+
             }
         }
 
@@ -216,7 +245,7 @@ class Endpoint(
             Cookie
         }
 
-        override fun build() = Parameter().also { param ->
+        override fun build(context: Application) = Parameter().also { param ->
             param
                 .name(name)
                 .description(description)

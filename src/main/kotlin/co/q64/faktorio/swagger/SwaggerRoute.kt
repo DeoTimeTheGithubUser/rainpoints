@@ -5,6 +5,7 @@ package co.q64.faktorio.swagger
 import co.q64.faktorio.FaktorioConfig
 import co.q64.faktorio.internal.endpoints
 import co.q64.faktorio.util.swag
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
@@ -32,16 +33,18 @@ import kotlinx.html.unsafe
 class SwaggerRoute(private val config: FaktorioConfig) {
 
     private val mapper by lazy {
-        ObjectMapper().writerWithDefaultPrettyPrinter()
+        ObjectMapper()
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .writerWithDefaultPrettyPrinter()
     }
 
     fun route(app: Application) {
         val paths = Paths().apply {
-            app.endpoints.toList().groupBy { it.path }
+            app.endpoints.filter { !it.secret }.toList().groupBy { it.path }
                 .map { (path, points) ->
                     addPathItem(path, PathItem().apply {
                         points.forEach { endpoint ->
-                            operation(endpoint.method.swag, endpoint.build())
+                            operation(endpoint.method.swag, endpoint.build(app))
                         }
                     })
                 }
