@@ -1,3 +1,3 @@
 
-rootProject.name = "faktorio"
+rootProject.name = "rainpoints"
 

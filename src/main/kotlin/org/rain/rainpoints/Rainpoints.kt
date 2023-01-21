@@ -1,20 +1,17 @@
-package org.rain.faktorio
+package org.rain.rainpoints
 
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.hooks.MonitoringEvent
-import org.rain.faktorio.argument.ArgumentRegistryKey
-import org.rain.faktorio.schemas.SchemaRegistryKey
-import org.rain.faktorio.scope.scopeHandler
-import org.rain.faktorio.swagger.SwaggerRoute
+import org.rain.rainpoints.argument.ArgumentRegistryKey
+import org.rain.rainpoints.schemas.SchemaRegistryKey
+import org.rain.rainpoints.scope.scopeHandler
+import org.rain.rainpoints.swagger.SwaggerRoute
 
 @DslMarker
-annotation class FaktorioDsl
+annotation class RainpointsDsl
 
-@RequiresOptIn
-annotation class FaktorioExperimental
-
-val Faktorio = createApplicationPlugin("Faktorio", ::FaktorioConfig) {
+val Rainpoints = createApplicationPlugin("Rainpoints", ::RainpointsConfig) {
     application.attributes.put(SchemaRegistryKey, pluginConfig.registeredSchemas)
     application.attributes.put(ArgumentRegistryKey, pluginConfig.registeredParsers)
     onCall { call ->
@@ -24,5 +21,3 @@ val Faktorio = createApplicationPlugin("Faktorio", ::FaktorioConfig) {
         SwaggerRoute(pluginConfig).route(it)
     }
 }
-
-

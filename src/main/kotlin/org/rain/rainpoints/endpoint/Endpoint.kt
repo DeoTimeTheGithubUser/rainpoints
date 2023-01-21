@@ -1,4 +1,4 @@
-package org.rain.faktorio.endpoint
+package org.rain.rainpoints.endpoint
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -7,17 +7,15 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.util.pipeline.PipelineContext
-import org.rain.faktorio.FaktorioDsl
-import org.rain.faktorio.argument.argumentParser
-import org.rain.faktorio.impl.RainEndpoint
-import org.rain.faktorio.scope.APIScope
-import org.rain.faktorio.util.ApplicationContext
-import kotlin.experimental.ExperimentalTypeInference
+import org.rain.rainpoints.RainpointsDsl
+import org.rain.rainpoints.argument.argumentParser
+import org.rain.rainpoints.impl.RainEndpoint
+import org.rain.rainpoints.scope.APIScope
+import org.rain.rainpoints.util.ApplicationContext
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import kotlin.reflect.KSuspendFunction1
 
 typealias ExecutionHandler<B, R> = suspend PipelineContext<Unit, ApplicationCall>.(B) -> R
 
@@ -31,14 +29,14 @@ interface Endpoint : ApplicationContext {
     val path: String
     val arguments: List<Argument<*>>
 
-    @FaktorioDsl
+    @RainpointsDsl
     fun call(closure: Call.() -> Unit)
 
     interface Call : ApplicationContext {
 
-        @FaktorioDsl
+        @RainpointsDsl
         fun <R> execute(handler: ExecutionHandler<Nothing, R>) = execute(null, handler)
-        @FaktorioDsl
+        @RainpointsDsl
         fun <B, R> execute(overload: Nothing? = null, handler: ExecutionHandler<B, R>)
 
 
@@ -78,7 +76,7 @@ interface Endpoint : ApplicationContext {
 
         companion object {
 
-            @FaktorioDsl
+            @RainpointsDsl
             @JvmName("reifiedParameter")
             inline fun <reified T> Call.parameter(
                 name: String? = null,
@@ -87,20 +85,20 @@ interface Endpoint : ApplicationContext {
                 parser: Argument.Parser<T> = application.argumentParser()
             ) = (this as _Internal).parameter(name, description, type).parsed(parser)
 
-            @FaktorioDsl
+            @RainpointsDsl
             inline fun <reified T : Any> Call.response(
                 code: HttpStatusCode = HttpStatusCode.OK,
                 noinline closure: Response<T>.() -> Unit = {}
             ) = (this as _Internal).response(code, T::class, closure)
 
-            @FaktorioDsl
+            @RainpointsDsl
             @JvmName("statusResponse")
             fun Call.response(
                 code: HttpStatusCode = HttpStatusCode.OK,
                 closure: Response<Nothing>.() -> Unit = {}
             ) = (this as _Internal).response(code, closure = closure)
 
-            @FaktorioDsl
+            @RainpointsDsl
             inline fun <reified T : Any> Call.request(
                 noinline closure: Request<T>.() -> Unit = {}
             ) = (this as _Internal).request(T::class, closure)
@@ -169,7 +167,7 @@ interface Endpoint : ApplicationContext {
     }
 }
 
-@FaktorioDsl
+@RainpointsDsl
 fun Route.endpoint(path: String? = null, closure: Endpoint.() -> Unit) {
     val route = (path?.let { createRouteFromPath(it) } ?: this)
     application.endpoints += RainEndpoint(route).apply(closure).configure()

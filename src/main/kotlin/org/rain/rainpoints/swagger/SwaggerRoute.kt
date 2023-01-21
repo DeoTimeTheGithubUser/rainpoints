@@ -1,6 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package org.rain.faktorio.swagger
+package org.rain.rainpoints.swagger
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -26,12 +26,12 @@ import kotlinx.html.link
 import kotlinx.html.script
 import kotlinx.html.title
 import kotlinx.html.unsafe
-import org.rain.faktorio.FaktorioConfig
-import org.rain.faktorio.endpoint.endpoints
-import org.rain.faktorio.impl.RainEndpoint
-import org.rain.faktorio.util.swag
+import org.rain.rainpoints.RainpointsConfig
+import org.rain.rainpoints.endpoint.endpoints
+import org.rain.rainpoints.impl.RainEndpoint
+import org.rain.rainpoints.util.swag
 
-class SwaggerRoute(private val config: FaktorioConfig) {
+class SwaggerRoute(private val config: RainpointsConfig) {
 
     private val mapper by lazy {
         ObjectMapper()

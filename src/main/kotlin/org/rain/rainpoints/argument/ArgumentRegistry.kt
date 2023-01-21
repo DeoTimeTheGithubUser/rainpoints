@@ -1,9 +1,9 @@
-package org.rain.faktorio.argument
+package org.rain.rainpoints.argument
 
 import io.ktor.server.application.Application
 import io.ktor.util.AttributeKey
 import kotlinx.serialization.serializer
-import org.rain.faktorio.endpoint.Endpoint
+import org.rain.rainpoints.endpoint.Endpoint
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 

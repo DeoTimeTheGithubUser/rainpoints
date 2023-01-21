@@ -1,4 +1,4 @@
-package org.rain.faktorio.schemas
+package org.rain.rainpoints.schemas
 
 import io.swagger.v3.oas.models.media.Schema
 import kotlin.reflect.KClass

@@ -1,12 +1,12 @@
-package org.rain.faktorio.argument
+package org.rain.rainpoints.argument
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.response.respond
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.impl.RainArgument
+import org.rain.rainpoints.endpoint.Endpoint
+import org.rain.rainpoints.impl.RainArgument
 
 internal class ArgumentProcessor(
     private val call: ApplicationCall

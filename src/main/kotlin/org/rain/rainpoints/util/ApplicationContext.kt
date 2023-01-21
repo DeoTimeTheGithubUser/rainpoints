@@ -1,4 +1,4 @@
-package org.rain.faktorio.util
+package org.rain.rainpoints.util
 
 import io.ktor.server.application.Application
 

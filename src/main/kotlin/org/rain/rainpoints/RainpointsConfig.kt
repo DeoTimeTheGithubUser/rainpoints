@@ -1,18 +1,18 @@
-package org.rain.faktorio
+package org.rain.rainpoints
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.info.Info
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.schemas.SchemaConfiguration
-import org.rain.faktorio.scope.APIScope
+import org.rain.rainpoints.endpoint.Endpoint
+import org.rain.rainpoints.schemas.SchemaConfiguration
+import org.rain.rainpoints.scope.APIScope
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 typealias ScopeHandler = suspend PipelineContext<*, ApplicationCall>.(APIScope) -> Boolean
 
-class FaktorioConfig {
+class RainpointsConfig {
 
     internal var scopeHandler: ScopeHandler = { false }
     internal val registeredSchemas: MutableMap<KClass<*>, SchemaConfiguration<*>> = mutableMapOf()

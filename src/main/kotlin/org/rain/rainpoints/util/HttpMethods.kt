@@ -1,4 +1,4 @@
-package org.rain.faktorio.util
+package org.rain.rainpoints.util
 
 import io.ktor.http.HttpMethod
 import io.swagger.v3.oas.models.PathItem

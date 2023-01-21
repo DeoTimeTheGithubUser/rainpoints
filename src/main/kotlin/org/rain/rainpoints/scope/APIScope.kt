@@ -1,4 +1,4 @@
-package org.rain.faktorio.scope
+package org.rain.rainpoints.scope
 
 interface APIScope {
 

@@ -1,4 +1,4 @@
-package org.rain.faktorio.endpoint
+package org.rain.rainpoints.endpoint
 
 import io.ktor.server.application.Application
 import io.ktor.util.AttributeKey

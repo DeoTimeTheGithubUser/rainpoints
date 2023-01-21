@@ -1,9 +1,5 @@
-package org.rain.faktorio.schemas
+package org.rain.rainpoints.schemas
 
-import io.ktor.http.ContentType
-import io.ktor.server.application.Application
-import io.swagger.v3.oas.models.media.Content
-import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.XML
 import java.io.File

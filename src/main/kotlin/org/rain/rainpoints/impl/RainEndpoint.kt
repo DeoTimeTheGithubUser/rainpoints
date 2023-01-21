@@ -1,4 +1,4 @@
-package org.rain.faktorio.impl
+package org.rain.rainpoints.impl
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -15,14 +15,14 @@ import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
-import org.rain.faktorio.argument.ArgumentProcessor
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.endpoint.ExecutionHandler
-import org.rain.faktorio.scope.APIScope
-import org.rain.faktorio.scope.scopeHandler
-import org.rain.faktorio.util.Buildable
-import org.rain.faktorio.util.path
-import org.rain.faktorio.util.typeInfo
+import org.rain.rainpoints.argument.ArgumentProcessor
+import org.rain.rainpoints.endpoint.Endpoint
+import org.rain.rainpoints.endpoint.ExecutionHandler
+import org.rain.rainpoints.scope.APIScope
+import org.rain.rainpoints.scope.scopeHandler
+import org.rain.rainpoints.util.Buildable
+import org.rain.rainpoints.util.path
+import org.rain.rainpoints.util.typeInfo
 
 class RainEndpoint(
     private val route: Route,

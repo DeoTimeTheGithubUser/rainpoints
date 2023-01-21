@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-group = "org.rain.faktorio"
+group = "org.rain.rainpoints"
 version = "1.0.0"
 
 repositories {
@@ -15,8 +15,6 @@ repositories {
 }
 
 dependencies {
-    // coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     // swagger
     implementation("io.swagger.core.v3:swagger-models:2.2.8")
@@ -24,13 +22,8 @@ dependencies {
     // ktor
     val ktorVersion = "2.2.2"
     implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:1.3.5")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.8.0")
 
     // serialization
@@ -41,7 +34,6 @@ dependencies {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
 }
 

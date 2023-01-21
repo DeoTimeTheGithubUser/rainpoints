@@ -1,11 +1,11 @@
-package org.rain.faktorio.impl
+package org.rain.rainpoints.impl
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import org.rain.faktorio.argument.StringArgumentParser
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.endpoint.ExecutionHandler
-import org.rain.faktorio.util.clazz
+import org.rain.rainpoints.argument.StringArgumentParser
+import org.rain.rainpoints.endpoint.Endpoint
+import org.rain.rainpoints.endpoint.ExecutionHandler
+import org.rain.rainpoints.util.clazz
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType

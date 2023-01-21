@@ -1,4 +1,4 @@
-package org.rain.faktorio.schemas
+package org.rain.rainpoints.schemas
 
 import io.ktor.http.ContentType
 import io.ktor.server.application.Application
