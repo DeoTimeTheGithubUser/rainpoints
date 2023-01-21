@@ -41,14 +41,22 @@ application {
     mainClass.set("MainKt")
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "deotime"
-            url = uri("https://repo.q64.io/deotime")
-            credentials {
-                username = "deotime"
-                password = System.getenv("RAIN_REPO_PW")
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("rainpoints") {
+                artifactId = "rainpoints"
+                from(components["java"])
+            }
+        }
+        repositories {
+            maven {
+                name = "deotime"
+                url = uri("https://repo.q64.io/deotime")
+                credentials {
+                    username = "deotime"
+                    password = System.getenv("RAIN_REPO_PW")
+                }
             }
         }
     }
