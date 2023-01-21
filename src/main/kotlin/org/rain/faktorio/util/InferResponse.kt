@@ -14,13 +14,16 @@ class InferResponse<T> {
 }
 
 context (InferResponse<T>)
-@OptIn(FaktorioExperimental::class)
-@FaktorioExperimental
-suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) = _respond(message)
+        @OptIn(FaktorioExperimental::class)
+        @FaktorioExperimental
+        suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) = _respond(message)
 
 @FaktorioDsl
 @FaktorioExperimental
-inline fun <reified T : Any> Endpoint.Call.request(infer: InferResponse.Companion, crossinline closure: suspend context(PipelineContext<*, ApplicationCall>) InferResponse<T>.() -> Unit) {
+inline fun <reified T : Any> Endpoint.Call.request(
+    infer: InferResponse.Companion,
+    crossinline closure: suspend context(PipelineContext<*, ApplicationCall>) InferResponse<T>.() -> Unit
+) {
     request { closure(InferResponse()) }
     response<T>()
 }

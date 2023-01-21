@@ -1,13 +1,13 @@
 package org.rain.faktorio.impl
 
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.util.Buildable
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.BadRequestException
 import io.swagger.v3.oas.models.parameters.Parameter
+import org.rain.faktorio.endpoint.Endpoint
 import org.rain.faktorio.endpoint.Endpoint.Call.Companion.response
 import org.rain.faktorio.schemas.registeredSchema
+import org.rain.faktorio.util.Buildable
 import kotlin.reflect.KClass
 
 data class RainArgument<T> @PublishedApi internal constructor(

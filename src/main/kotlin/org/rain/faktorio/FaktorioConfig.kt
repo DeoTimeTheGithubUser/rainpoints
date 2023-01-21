@@ -1,10 +1,10 @@
 package org.rain.faktorio
 
 import io.ktor.server.application.ApplicationCall
-import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.schemas.SchemaConfiguration
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.info.Info
+import org.rain.faktorio.endpoint.Endpoint
+import org.rain.faktorio.schemas.SchemaConfiguration
 import org.rain.faktorio.scope.APIScope
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -62,10 +62,8 @@ class FaktorioConfig {
     value class SchemaRegistry(
         val schemas: MutableMap<KClass<*>, SchemaConfiguration<*>> = mutableMapOf()
     ) {
-        inline operator fun <reified T> SchemaConfiguration<T>.unaryPlus() = register(this)
-
-        inline fun <reified T> register(config: SchemaConfiguration<T>) {
-            schemas[T::class] = config
+        inline operator fun <reified T> SchemaConfiguration<T>.unaryPlus() {
+            schemas[T::class] = this
         }
     }
 }

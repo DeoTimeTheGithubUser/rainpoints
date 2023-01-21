@@ -1,10 +1,10 @@
 package org.rain.faktorio.impl
 
 import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.schemas.SchemaFactory.schemaContent
 import org.rain.faktorio.util.Buildable
 import io.ktor.server.application.Application
 import io.swagger.v3.oas.models.parameters.RequestBody
+import org.rain.faktorio.schemas.schemaContent
 import kotlin.reflect.KClass
 
 data class RainBody<T : Any>(

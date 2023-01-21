@@ -82,14 +82,6 @@ internal object SchemaFactory {
         }
     }
 
-    fun Application.schemaContent(type: KClass<*>) = registeredSchema(type).let {
-        Content()
-            .addMediaType(
-                "${ContentType.Application.Json}",
-                MediaType().schema(it)
-            )
-    }
-
     private infix fun KClass<*>.instance(other: KClass<*>) =
         other.java.isAssignableFrom(java)
 }

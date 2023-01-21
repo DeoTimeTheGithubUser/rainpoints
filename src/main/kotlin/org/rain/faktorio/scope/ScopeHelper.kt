@@ -1,8 +1,8 @@
 package org.rain.faktorio.scope
 
-import org.rain.faktorio.ScopeHandler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.AttributeKey
+import org.rain.faktorio.ScopeHandler
 
 private val FaktorioScopeHandlerKey = AttributeKey<ScopeHandler>("FaktorioScopeHandlerKey")
 

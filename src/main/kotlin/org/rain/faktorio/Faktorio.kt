@@ -1,12 +1,12 @@
 package org.rain.faktorio
 
-import org.rain.faktorio.scope.scopeHandler
-import org.rain.faktorio.schemas.SchemaRegistryKey
-import org.rain.faktorio.swagger.SwaggerRoute
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.hooks.MonitoringEvent
 import org.rain.faktorio.argument.ArgumentRegistryKey
+import org.rain.faktorio.schemas.SchemaRegistryKey
+import org.rain.faktorio.scope.scopeHandler
+import org.rain.faktorio.swagger.SwaggerRoute
 
 @DslMarker
 annotation class FaktorioDsl

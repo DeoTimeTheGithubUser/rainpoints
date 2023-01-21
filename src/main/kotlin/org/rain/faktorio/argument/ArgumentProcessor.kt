@@ -1,17 +1,17 @@
 package org.rain.faktorio.argument
 
-import org.rain.faktorio.impl.RainArgument
-import org.rain.faktorio.endpoint.Endpoint
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.response.respond
+import org.rain.faktorio.endpoint.Endpoint
+import org.rain.faktorio.impl.RainArgument
 
 internal class ArgumentProcessor(
     private val call: ApplicationCall
 ) {
-    suspend fun <T> buildArgument(argument: Endpoint.Argument<T>): T? {
+    private suspend fun <T> buildArgument(argument: Endpoint.Argument<T>): T? {
         val name = argument.name ?: run {
             call.respond(HttpStatusCode.InternalServerError)
             error("Parameter $argument still has no name.")

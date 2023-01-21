@@ -1,7 +1,5 @@
 package org.rain.faktorio.endpoint
 
-import org.rain.faktorio.FaktorioDsl
-import org.rain.faktorio.impl.RainEndpoint
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -9,8 +7,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.server.routing.createRouteFromPath
 import io.ktor.util.pipeline.PipelineContext
+import org.rain.faktorio.FaktorioDsl
 import org.rain.faktorio.argument.argumentParser
-import org.rain.faktorio.endpoint.Endpoint.Call.Companion.response
+import org.rain.faktorio.impl.RainEndpoint
 import org.rain.faktorio.scope.APIScope
 import org.rain.faktorio.util.ApplicationContext
 import kotlin.reflect.KClass
@@ -52,6 +51,7 @@ interface Endpoint : ApplicationContext {
             var description: String?
         }
 
+        @Suppress("ClassName")
         interface _Internal : Call {
             fun <T : Any> body(
                 type: KClass<T>,
@@ -73,7 +73,8 @@ interface Endpoint : ApplicationContext {
 
         companion object {
 
-            @FaktorioDsl @JvmName("reifiedParameter")
+            @FaktorioDsl
+            @JvmName("reifiedParameter")
             inline fun <reified T> Call.parameter(
                 name: String? = null,
                 description: String? = null,
@@ -87,7 +88,8 @@ interface Endpoint : ApplicationContext {
                 noinline closure: Response<T>.() -> Unit = {}
             ) = (this as _Internal).response(code, T::class, closure)
 
-            @FaktorioDsl @JvmName("statusResponse")
+            @FaktorioDsl
+            @JvmName("statusResponse")
             fun Call.response(
                 code: HttpStatusCode = HttpStatusCode.OK,
                 closure: Response<Nothing>.() -> Unit = {}

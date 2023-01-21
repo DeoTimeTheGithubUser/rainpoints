@@ -14,20 +14,18 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.serialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.rain.faktorio.argument.max
 import org.rain.faktorio.endpoint.Endpoint
-import org.rain.faktorio.scope.APIScope
 import org.rain.faktorio.endpoint.Endpoint.Call.Companion.body
 import org.rain.faktorio.endpoint.Endpoint.Call.Companion.parameter
 import org.rain.faktorio.endpoint.Endpoint.Call.Companion.response
 import org.rain.faktorio.endpoint.endpoint
+import org.rain.faktorio.schemas.SchemaConfiguration
 import org.rain.faktorio.schemas.property
+import org.rain.faktorio.scope.APIScope
 import java.util.UUID
 
 object TestScopes : APIScope.Library {
@@ -70,7 +68,7 @@ fun main(): Unit = runBlocking {
         install(Faktorio) {
             scoped { true }
             schemas {
-                register {
+                +SchemaConfiguration {
                     property(Test::amount) {
                         maximum = (100).toBigDecimal()
                     }
