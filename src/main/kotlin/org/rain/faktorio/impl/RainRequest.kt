@@ -7,11 +7,11 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import org.rain.faktorio.schemas.schemaContent
 import kotlin.reflect.KClass
 
-data class RainBody<T : Any>(
+data class RainRequest<T : Any>(
     override var description: String? = null,
     override var required: Boolean = true,
     private val type: KClass<T>? = null
-) : Endpoint.Call.Body<T>, Buildable<RequestBody> {
+) : Endpoint.Call.Request<T>, Buildable<RequestBody> {
     override fun build(context: Application) = RequestBody().also { req ->
         req.description = description
         req.required = required

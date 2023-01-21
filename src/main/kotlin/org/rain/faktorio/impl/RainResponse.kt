@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 data class RainResponse<T : Any>(
     override val code: HttpStatusCode,
     override var description: String? = null,
-    private val type: KClass<T>? = null
+    internal val type: KClass<T>? = null
 ) : Endpoint.Call.Response<T>, Buildable<ApiResponse> {
     override fun build(context: Application) = ApiResponse().also { response ->
         response.description = description

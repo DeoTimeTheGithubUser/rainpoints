@@ -12,12 +12,14 @@ import org.rain.faktorio.argument.argumentParser
 import org.rain.faktorio.impl.RainEndpoint
 import org.rain.faktorio.scope.APIScope
 import org.rain.faktorio.util.ApplicationContext
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
+import kotlin.reflect.KSuspendFunction1
 
-typealias RequestHandler = suspend PipelineContext<*, ApplicationCall>.() -> Unit
+typealias ExecutionHandler<B, R> = suspend PipelineContext<Unit, ApplicationCall>.(B) -> R
 
 interface Endpoint : ApplicationContext {
     var summary: String?
@@ -35,13 +37,15 @@ interface Endpoint : ApplicationContext {
     interface Call : ApplicationContext {
 
         @FaktorioDsl
-        fun request(closure: RequestHandler)
+        fun <R> execute(handler: ExecutionHandler<Nothing, R>) = execute(null, handler)
+        @FaktorioDsl
+        fun <B, R> execute(overload: Nothing? = null, handler: ExecutionHandler<B, R>)
 
 
         operator fun <T> Argument<T>.provideDelegate(ref: Nothing?, prop: KProperty<*>): Argument<T>
         operator fun <T> Argument<T>.getValue(ref: Nothing?, prop: KProperty<*>): T
 
-        interface Body<T : Any> {
+        interface Request<T : Any> {
             var description: String?
             var required: Boolean
         }
@@ -53,9 +57,9 @@ interface Endpoint : ApplicationContext {
 
         @Suppress("ClassName")
         interface _Internal : Call {
-            fun <T : Any> body(
+            fun <T : Any> request(
                 type: KClass<T>,
-                closure: Body<T>.() -> Unit = {}
+                closure: Request<T>.() -> Unit = {}
             )
 
             fun <T : Any> response(
@@ -69,6 +73,7 @@ interface Endpoint : ApplicationContext {
                 description: String? = null,
                 type: Argument.Type = Argument.Type.Query,
             ): Argument<String>
+
         }
 
         companion object {
@@ -96,9 +101,9 @@ interface Endpoint : ApplicationContext {
             ) = (this as _Internal).response(code, closure = closure)
 
             @FaktorioDsl
-            inline fun <reified T : Any> Call.body(
-                noinline closure: Body<T>.() -> Unit = {}
-            ) = (this as _Internal).body(T::class, closure)
+            inline fun <reified T : Any> Call.request(
+                noinline closure: Request<T>.() -> Unit = {}
+            ) = (this as _Internal).request(T::class, closure)
         }
     }
 

@@ -6,6 +6,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
@@ -16,10 +17,12 @@ import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import org.rain.faktorio.argument.ArgumentProcessor
 import org.rain.faktorio.endpoint.Endpoint
+import org.rain.faktorio.endpoint.ExecutionHandler
 import org.rain.faktorio.scope.APIScope
 import org.rain.faktorio.scope.scopeHandler
 import org.rain.faktorio.util.Buildable
 import org.rain.faktorio.util.path
+import org.rain.faktorio.util.typeInfo
 
 class RainEndpoint(
     private val route: Route,
@@ -40,17 +43,26 @@ class RainEndpoint(
         call = { RainCall(application).apply(closure).configure() }
     }
 
-    private suspend fun PipelineContext<*, ApplicationCall>.processCall() {
+    private suspend fun PipelineContext<Unit, ApplicationCall>.processCall() {
         scope?.let {
             if (!call.scopeHandler(this, it)) {
                 if (secret) throw NotFoundException()
                 else return call.respond(HttpStatusCode.Unauthorized)
             }
         }
+
         val handler = this@RainEndpoint.call?.invoke() ?: return
+        val body = handler.bodyType?.let { call.receive<Any>(it.typeInfo) }
         val processor = ArgumentProcessor(call)
         handler.arguments.forEach { processor.processParameter(it) }
-        handler.request?.let { it() }
+        handler.execute?.let {
+            @Suppress("UNCHECKED_CAST")
+            (it as ExecutionHandler<Any?, Any?>)(this, body)?.let { res ->
+                handler.resType?.let { resType ->
+                    call.respond(res, resType.typeInfo)
+                }
+            }
+        }
     }
 
     internal fun configure() = apply {
