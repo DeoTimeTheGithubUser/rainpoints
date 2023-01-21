@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-group = "org.rain.rainpoints"
+group = "org.rain"
 version = "1.0.0"
 
 repositories {
