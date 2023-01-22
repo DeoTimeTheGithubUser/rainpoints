@@ -43,6 +43,12 @@ class RainEndpoint(
         call = { RainCall(application).apply(closure).configure() }
     }
 
+    override fun <B, R> execute(overload: Nothing?, handler: ExecutionHandler<B, R>) {
+        call {
+            execute(handler)
+        }
+    }
+
     private suspend fun PipelineContext<Unit, ApplicationCall>.processCall() {
         scope?.let {
             if (!call.scopeHandler(this, it)) {

@@ -32,6 +32,11 @@ interface Endpoint : ApplicationContext {
     @RainpointsDsl
     fun call(closure: Call.() -> Unit)
 
+    @RainpointsDsl
+    fun <R> execute(handler: ExecutionHandler<Nothing, R>) = execute(null, handler)
+    @RainpointsDsl
+    fun <B, R> execute(overload: Nothing? = null, handler: ExecutionHandler<B, R>)
+
     interface Call : ApplicationContext {
 
         @RainpointsDsl
