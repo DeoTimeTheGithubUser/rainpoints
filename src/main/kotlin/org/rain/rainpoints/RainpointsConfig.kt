@@ -41,6 +41,9 @@ class RainpointsConfig {
         var api: String = "api.json",
         var version: String = "4.14.0",
         var customStyle: String? = null,
+        // Will display the description of an endpoint with the scope's description
+        // if it is not already set
+        var defaultDescriptionByScope: Boolean = false,
         var packageLocation: String = "https://unpkg.com/swagger-ui-dist",
         internal var info: Info = Info()
     ) {

@@ -49,7 +49,10 @@ class SwaggerRoute(private val config: RainpointsConfig) {
                 .map { (path, points) ->
                     addPathItem(path, PathItem().apply {
                         points.forEach { endpoint ->
-                            operation(endpoint.method.swag, endpoint.build(app))
+                            operation(endpoint.method.swag, endpoint.build(app).apply {
+                                if (config.swagger.defaultDescriptionByScope && endpoint.description == null)
+                                    description = endpoint.scope?.description
+                            })
                         }
                     })
                 }

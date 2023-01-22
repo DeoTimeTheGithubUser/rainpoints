@@ -29,6 +29,13 @@ dependencies {
     // serialization
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+
+
+    // testing
+    testImplementation("io.ktor:ktor-server-netty:$ktorVersion")
+    testImplementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    testImplementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    testImplementation("ch.qos.logback:logback-classic:1.3.5")
 }
 
 tasks.withType<KotlinCompile> {
