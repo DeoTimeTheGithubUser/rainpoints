@@ -66,7 +66,7 @@ class RainEndpoint(
             (it as ExecutionHandler<Any?, Any?>)(this, body)?.let { res ->
                 handler.resType?.let { resType ->
                     call.respond(res, resType.typeInfo)
-                }
+                } ?: call.respond(HttpStatusCode.OK)
             }
         }
     }
