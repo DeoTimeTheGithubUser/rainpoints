@@ -5,16 +5,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 fun interface SchemaConfiguration<out T> {
-    val override get() = false
     fun Schema<@UnsafeVariance T>.configure()
 
     operator fun plus(other: SchemaConfiguration<@UnsafeVariance T>) = SchemaConfiguration {
         configure()
         with(other) { configure() }
-    }
-
-    fun interface Override<out T> : SchemaConfiguration<T> {
-        override val override get() = true
     }
 
     companion object Default : SchemaConfiguration<Nothing> {
