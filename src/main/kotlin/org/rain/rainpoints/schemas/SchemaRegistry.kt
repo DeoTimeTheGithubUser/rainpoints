@@ -7,10 +7,10 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import kotlin.reflect.KClass
 
-internal val SchemaRegistryKey = AttributeKey<Map<KClass<*>, SchemaConfiguration<*>>>("SchemaRegistry")
+internal val RainpointsSchemaRegistryKey = AttributeKey<Map<KClass<*>, SchemaConfiguration<*>>>("SchemaRegistry")
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Application.schemaConfiguration(type: KClass<T>) =
-    attributes.getOrNull(SchemaRegistryKey)?.get(type) as? SchemaConfiguration<T>
+    attributes.getOrNull(RainpointsSchemaRegistryKey)?.get(type) as? SchemaConfiguration<T>
 
 fun <T : Any> Application.registeredSchema(type: KClass<T>) =
     schema(type).also { schemaConfiguration(type)?.apply { it.configure() } }

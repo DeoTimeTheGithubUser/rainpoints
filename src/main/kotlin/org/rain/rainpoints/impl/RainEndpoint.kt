@@ -19,7 +19,7 @@ import org.rain.rainpoints.argument.ArgumentProcessor
 import org.rain.rainpoints.endpoint.Endpoint
 import org.rain.rainpoints.endpoint.ExecutionHandler
 import org.rain.rainpoints.scope.APIScope
-import org.rain.rainpoints.scope.scopeHandler
+import org.rain.rainpoints.scope.scopeHandlers
 import org.rain.rainpoints.util.Buildable
 import org.rain.rainpoints.util.path
 import org.rain.rainpoints.util.typeInfo
@@ -50,8 +50,8 @@ class RainEndpoint(
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.processCall() {
-        scope?.let {
-            if (!call.scopeHandler(this, it)) {
+        scope?.let { scope ->
+            if (application.scopeHandlers.any { !it(this, scope) }) {
                 if (secret) throw NotFoundException()
                 else return call.respond(HttpStatusCode.Unauthorized)
             }

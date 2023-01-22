@@ -25,7 +25,7 @@ import org.rain.rainpoints.schemas.property
 import org.rain.rainpoints.scope.APIScope
 import java.util.UUID
 
-object TestScopes : APIScope.Library {
+object TestScopes : APIScope.Library by APIScope.Library.Root {
     val Glitch = "glitchy" {
         name = "Stacky"
         description = "Shows your glitchable utilites"
@@ -65,7 +65,11 @@ fun main(): Unit = runBlocking {
             json()
         }
         install(Rainpoints) {
-            scoped { true }
+            scopes {
+                libraries {
+                    +TestScopes
+                }
+            }
             schemas {
                 +SchemaConfiguration {
                     property(Test::amount) {

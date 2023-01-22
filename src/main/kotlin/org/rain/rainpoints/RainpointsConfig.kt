@@ -14,14 +14,17 @@ typealias ScopeHandler = suspend PipelineContext<*, ApplicationCall>.(APIScope) 
 
 class RainpointsConfig {
 
-    internal var scopeHandler: ScopeHandler = { false }
     internal val registeredSchemas: MutableMap<KClass<*>, SchemaConfiguration<*>> = mutableMapOf()
     internal val registeredParsers: MutableMap<KType, Endpoint.Argument.Parser<*>> = mutableMapOf()
+    internal val scopeLibs: MutableList<APIScope.Library> = mutableListOf()
+    internal var scopeHandlers: MutableList<ScopeHandler> = mutableListOf()
     internal var swagger: Swagger = Swagger()
 
 
-    fun scoped(handler: ScopeHandler) {
-        scopeHandler = handler
+    fun scopes(closure: Scopes.() -> Unit) {
+        val scopes = Scopes().apply(closure)
+        scopeLibs += scopes.lib.scopes
+        scopes.claim?.let { scopeHandlers += it }
     }
 
     fun swagger(closure: Swagger.() -> Unit) {
@@ -58,6 +61,29 @@ class RainpointsConfig {
     ) {
         inline operator fun <reified T> Endpoint.Argument.Parser<T>.unaryPlus() {
             parsers[typeOf<T>()] = this
+        }
+    }
+
+    data class Scopes(
+        var lib: Libraries = Libraries(),
+        var claim: ScopeHandler? = null
+    ) {
+
+        fun libraries(closure: Libraries.() -> Unit) {
+            lib = Libraries().apply(closure)
+        }
+
+        fun claim(closure: ScopeHandler) {
+            claim = closure
+        }
+
+        @JvmInline
+        value class Libraries(
+            val scopes: MutableSet<APIScope.Library> = mutableSetOf()
+        ) {
+            operator fun APIScope.Library.unaryPlus() {
+                scopes += this
+            }
         }
     }
 

@@ -7,13 +7,13 @@ import org.rain.rainpoints.endpoint.Endpoint
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
-internal val ArgumentRegistryKey = AttributeKey<Map<KType, Endpoint.Argument.Parser<*>>>("ArgumentRegistry")
+internal val RainpointsArgumentRegistryKey = AttributeKey<Map<KType, Endpoint.Argument.Parser<*>>>("ArgumentRegistry")
 
 inline fun <reified T> Application.argumentParser() = argumentParser<T>(typeOf<T>())
 
 @Suppress("UNCHECKED_CAST")
 fun <T> Application.argumentParser(type: KType) =
     ((StandardArguments[type] ?: (attributes
-        .getOrNull(ArgumentRegistryKey)
+        .getOrNull(RainpointsArgumentRegistryKey)
         ?.get(type)))
         ?: JsonArgumentParser(type, serializer(type))) as Endpoint.Argument.Parser<T>
