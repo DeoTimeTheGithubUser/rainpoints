@@ -3,6 +3,9 @@ package org.rain.rainpoints
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.security.OAuthFlow
+import io.swagger.v3.oas.models.security.OAuthFlows
+import io.swagger.v3.oas.models.security.SecurityScheme
 import org.rain.rainpoints.endpoint.Endpoint
 import org.rain.rainpoints.schemas.SchemaConfiguration
 import org.rain.rainpoints.scope.APIScope
@@ -48,10 +51,15 @@ class RainpointsConfig {
         // if it is not already set
         var defaultDescriptionByScope: Boolean = false,
         var packageLocation: String = "https://unpkg.com/swagger-ui-dist",
-        internal var info: Info = Info()
+        internal var info: Info = Info(),
+        internal var oauth: OAuthFlow? = null
     ) {
         fun info(closure: Info.() -> Unit) {
             info = Info().apply(closure)
+        }
+
+        fun oauth(closure: OAuthFlow.() -> Unit) {
+            oauth = OAuthFlow().apply(closure)
         }
     }
 

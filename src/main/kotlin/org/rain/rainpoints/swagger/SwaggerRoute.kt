@@ -18,6 +18,8 @@ import io.ktor.server.routing.routing
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
+import io.swagger.v3.oas.models.security.OAuthFlows
+import io.swagger.v3.oas.models.security.SecurityScheme
 import kotlinx.html.body
 import kotlinx.html.div
 import kotlinx.html.head
@@ -60,6 +62,12 @@ class SwaggerRoute(private val config: RainpointsConfig) {
         }
         val api = OpenAPI().apply {
             info = config.swagger.info
+            config.swagger.oauth?.let { auth ->
+                schemaRequirement("rain", SecurityScheme().apply {
+                    type = SecurityScheme.Type.OAUTH2
+                    flows = OAuthFlows().authorizationCode(auth)
+                })
+            }
             paths(paths)
         }
         app.routing {
