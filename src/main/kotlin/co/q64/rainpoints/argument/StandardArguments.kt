@@ -5,6 +5,8 @@ import kotlinx.serialization.json.Json
 import co.q64.rainpoints.endpoint.Endpoint
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.pipeline.PipelineContext
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.UUID
 import kotlin.reflect.KType
 
@@ -16,6 +18,8 @@ internal val StandardArguments: Map<KType, Endpoint.Argument.Parser<*>> =
         LongArgumentParser,
         DoubleArgumentParser,
         BooleanArgumentParser,
+        BigIntegerParser,
+        BigDecimalParser,
         UUIDArgumentParser
     ).associateBy { it.type }
 
@@ -23,8 +27,10 @@ object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argu
 object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser.simple(parse = String::toInt))
 object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser.simple(parse = String::toLong))
 object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser.simple(parse = String::toDouble))
-object BooleanArgumentParser :
-    Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser.simple(parse = String::toBooleanStrict))
+object BooleanArgumentParser : Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser.simple(parse = String::toBooleanStrict))
+
+object BigIntegerParser : Endpoint.Argument.Parser<BigInteger> by (Endpoint.Argument.Parser.simple(parse = ::BigInteger))
+object BigDecimalParser : Endpoint.Argument.Parser<BigDecimal> by (Endpoint.Argument.Parser.simple(parse = ::BigDecimal))
 
 object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by Endpoint.Argument.Parser.simple(parse = UUID::fromString)
 
