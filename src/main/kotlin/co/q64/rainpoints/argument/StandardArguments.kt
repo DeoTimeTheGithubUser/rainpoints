@@ -3,6 +3,8 @@ package co.q64.rainpoints.argument
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import co.q64.rainpoints.endpoint.Endpoint
+import io.ktor.server.application.ApplicationCall
+import io.ktor.util.pipeline.PipelineContext
 import java.util.UUID
 import kotlin.reflect.KType
 
@@ -18,19 +20,19 @@ internal val StandardArguments: Map<KType, Endpoint.Argument.Parser<*>> =
     ).associateBy { it.type }
 
 object StringArgumentParser : Endpoint.Argument.Parser<String> by (Endpoint.Argument.Parser { it })
-object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser(parse = String::toInt))
-object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser(parse = String::toLong))
-object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser(parse = String::toDouble))
+object IntArgumentParser : Endpoint.Argument.Parser<Int> by (Endpoint.Argument.Parser.simple(parse = String::toInt))
+object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument.Parser.simple(parse = String::toLong))
+object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser.simple(parse = String::toDouble))
 object BooleanArgumentParser :
-    Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser(parse = String::toBooleanStrict))
+    Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser.simple(parse = String::toBooleanStrict))
 
-object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by Endpoint.Argument.Parser(parse = UUID::fromString)
+object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by Endpoint.Argument.Parser.simple(parse = UUID::fromString)
 
 data class JsonArgumentParser<T>(
     override val type: KType,
     private val serializer: KSerializer<T>
 ) : Endpoint.Argument.Parser<T> {
-    override fun parse(input: String) =
+    override suspend fun ApplicationCall.parse(input: String): T =
         Json.decodeFromString(serializer, input)
 }
 

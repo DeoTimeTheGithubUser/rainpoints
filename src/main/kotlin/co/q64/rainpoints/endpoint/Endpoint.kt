@@ -119,19 +119,21 @@ interface Endpoint : ApplicationContext {
         val example: T?
 
         fun <R> parsed(parser: Parser<R>): Argument<R>
-        fun chain(props: Call.() -> Unit = {}, closure: (T) -> Unit): Argument<T>
+        fun chain(props: Call.() -> Unit = {}, closure: suspend ApplicationCall.(T) -> Unit): Argument<T>
         fun require(happens: String = "requirement is not met", check: (T) -> Boolean): Argument<T>
         fun optional(): Argument<T?>
         fun example(example: T): Argument<T>
 
         companion object {
-            inline fun <T, reified R> Argument<T>.map(crossinline functor: (T) -> R) =
-                parsed(Parser { functor(parser.parse(it)) })
+            inline fun <T, reified R> Argument<T>.map(crossinline functor: suspend ApplicationCall.(T) -> R) =
+                parsed(Parser {
+                    with(parser) { functor(parse(it)) }
+                })
         }
 
         interface Parser<T> {
             val type: KType
-            fun parse(input: String): T
+            suspend fun ApplicationCall.parse(input: String): T
             val description: String get() = "$type type argument."
             fun Call.properties() = Unit
 
@@ -139,9 +141,9 @@ interface Endpoint : ApplicationContext {
                 override val type: KType,
                 override val description: String,
                 val props: Call.() -> Unit,
-                val parser: (String) -> T,
+                val parser: suspend ApplicationCall.(String) -> T,
             ) : Parser<T> {
-                override fun parse(input: String) = parser(input)
+                override suspend fun ApplicationCall.parse(input: String) = parser(input)
                 override fun Call.properties() = props()
             }
 
@@ -151,15 +153,22 @@ interface Endpoint : ApplicationContext {
                     type: KType,
                     description: String = "$type type argument.",
                     props: Call.() -> Unit = {},
-                    parse: (String) -> T
+                    parse: suspend ApplicationCall.(String) -> T
                 ) = Simple(type, description, props, parse)
 
                 inline operator fun <reified T> invoke(
                     description: String = "${typeOf<T>()} type argument.",
                     noinline props: Call.() -> Unit = {},
-                    noinline parse: (String) -> T
+                    noinline parse: suspend ApplicationCall.(String) -> T
                 ) =
                     Simple(typeOf<T>(), description, props, parse)
+
+                inline fun <reified T> simple(
+                    description: String = "${typeOf<T>()} type argument.",
+                    noinline props: Call.() -> Unit = {},
+                    noinline parse: (String) -> T
+                ) =
+                    Simple(typeOf<T>(), description, props) { parse(it) }
             }
         }
 

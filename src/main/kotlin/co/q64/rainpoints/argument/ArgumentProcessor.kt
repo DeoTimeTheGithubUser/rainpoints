@@ -7,6 +7,7 @@ import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.response.respond
 import co.q64.rainpoints.endpoint.Endpoint
 import co.q64.rainpoints.impl.RainArgument
+import io.ktor.util.pipeline.PipelineContext
 
 internal class ArgumentProcessor(
     private val call: ApplicationCall
@@ -26,7 +27,7 @@ internal class ArgumentProcessor(
         else throw MissingRequestParameterException(name))
 
         return runCatching {
-            argument.parser.parse(raw)
+            with(argument.parser) { call.parse(raw) }
         }.getOrElse { throw BadRequestException("Could not parse parameter \"$name\" to type ${argument.parser.type}: ${it.message}") }
     }
 

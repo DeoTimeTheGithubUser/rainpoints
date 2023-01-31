@@ -8,6 +8,7 @@ import co.q64.rainpoints.endpoint.Endpoint
 import co.q64.rainpoints.endpoint.Endpoint.Call.Companion.response
 import co.q64.rainpoints.schemas.registeredSchema
 import co.q64.rainpoints.util.Buildable
+import io.ktor.server.application.ApplicationCall
 import kotlin.reflect.KClass
 
 data class RainArgument<T> @PublishedApi internal constructor(
@@ -24,8 +25,10 @@ data class RainArgument<T> @PublishedApi internal constructor(
     override fun <R> parsed(parser: Endpoint.Argument.Parser<R>) =
         cast<R>().copy(parser = parser)
 
-    override fun chain(props: Endpoint.Call.() -> Unit, closure: (T) -> Unit) =
-        parsed(Endpoint.Argument.Parser(parser.type, props = props) { parser.parse(it).also(closure) })
+    override fun chain(props: Endpoint.Call.() -> Unit, closure: suspend ApplicationCall.(T) -> Unit) =
+        parsed(Endpoint.Argument.Parser(parser.type, props = props) {
+            with(parser) { parse(it).also { closure(this@Parser, it) } }
+        })
 
     override fun require(happens: String, check: (T) -> Boolean) =
         chain({
