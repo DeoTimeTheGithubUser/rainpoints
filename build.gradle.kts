@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-group = "org.rain"
+group = "co.q64"
 version = "1.0.2"
 
 repositories {
