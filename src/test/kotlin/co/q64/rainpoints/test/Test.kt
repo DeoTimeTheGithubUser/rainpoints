@@ -49,8 +49,11 @@ data class Test(
     val alive: Boolean,
     val id: @Serializable(with = UUIDSerializer::class) UUID,
     val things: List<String>,
-    val type: Type
+    val type: Type,
+    val recursiveLink: RecursiveLink
 ) {
+    @Serializable
+    class RecursiveLink(val test: Test)
     enum class Type {
         Glitchy,
         Stackable

@@ -31,7 +31,7 @@ internal object SchemaFactory {
     fun <T, P> createProperty(prop: KProperty1<T, P>) =
         Schema<P>().apply { useType(prop.returnType) }
 
-    private fun Schema<*>.useType(type: KType) {
+    private fun Schema<*>.useType(type: KType, used: MutableSet<KClass<*>> = hashSetOf()) {
         val clazz = (type.classifier as? KClass<*>) ?: error("Cannot make schema of generic type.")
         xml = XML().name(clazz.simpleName)
         when {
@@ -72,8 +72,8 @@ internal object SchemaFactory {
             }
             else -> {
                 type("object")
-                clazz.declaredMemberProperties.forEach {
-                    addProperty(it.name, createProperty(it))
+                if (used.add(clazz)) clazz.declaredMemberProperties.forEach {
+                    addProperty(it.name, Schema<Any>().apply { useType(it.returnType, used) })
                 }
             }
         }
