@@ -58,7 +58,7 @@ interface APIScope {
                 )
 
                 override fun String.invoke(builder: Builder.() -> Unit) =
-                    with(rootScope) { invoke(builder) }.also { all += it }.also { println("asdf") }
+                    with(rootScope) { invoke(builder) }.also { all += it }
                 override fun all() = (all + all.flatMap { it.children })
             }
         }

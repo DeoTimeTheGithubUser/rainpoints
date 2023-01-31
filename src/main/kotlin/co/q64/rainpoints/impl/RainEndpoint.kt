@@ -83,27 +83,25 @@ class RainEndpoint(
     }
 
     override fun build(context: Application) = Operation().also { operation ->
-        kotlin.runCatching {
-            operation.addTagsItem(category)
-            operation
-                .summary(summary)
-                .description(description)
+        operation.addTagsItem(category)
+        operation
+            .summary(summary)
+            .description(description)
 
-            call?.invoke()?.let {
-                operation.responses(ApiResponses().apply {
-                    it.responses.forEach { res ->
-                        addApiResponse("${res.code.value}", res.build(context))
-                    }
-                })
-                operation.requestBody(it.body?.build(context))
-            }
-            scope?.let { scope ->
-                operation.addSecurityItem(SecurityRequirement().also { security ->
-                    security.addList("rain", scope.path)
-                })
-            }
-            operation.parameters(arguments.map { it.build(context) })
-        }.exceptionOrNull()?.printStackTrace()
+        call?.invoke()?.let {
+            operation.responses(ApiResponses().apply {
+                it.responses.forEach { res ->
+                    addApiResponse("${res.code.value}", res.build(context))
+                }
+            })
+            operation.requestBody(it.body?.build(context))
+        }
+        scope?.let { scope ->
+            operation.addSecurityItem(SecurityRequirement().also { security ->
+                security.addList("rain", scope.path)
+            })
+        }
+        operation.parameters(arguments.map { it.build(context) })
 
     }
 
