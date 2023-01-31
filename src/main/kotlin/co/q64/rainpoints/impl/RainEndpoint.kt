@@ -1,5 +1,13 @@
 package co.q64.rainpoints.impl
 
+import co.q64.rainpoints.argument.ArgumentProcessor
+import co.q64.rainpoints.endpoint.Endpoint
+import co.q64.rainpoints.endpoint.ExecutionHandler
+import co.q64.rainpoints.scope.APIScope
+import co.q64.rainpoints.scope.scopeHandlers
+import co.q64.rainpoints.util.Buildable
+import co.q64.rainpoints.util.path
+import co.q64.rainpoints.util.typeInfo
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -15,14 +23,6 @@ import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
-import co.q64.rainpoints.argument.ArgumentProcessor
-import co.q64.rainpoints.endpoint.Endpoint
-import co.q64.rainpoints.endpoint.ExecutionHandler
-import co.q64.rainpoints.scope.APIScope
-import co.q64.rainpoints.scope.scopeHandlers
-import co.q64.rainpoints.util.Buildable
-import co.q64.rainpoints.util.path
-import co.q64.rainpoints.util.typeInfo
 
 class RainEndpoint(
     private val route: Route,
@@ -69,6 +69,7 @@ class RainEndpoint(
                 } ?: call.respond(HttpStatusCode.OK)
             }
         }
+
     }
 
     internal fun configure() = apply {
@@ -82,21 +83,28 @@ class RainEndpoint(
     }
 
     override fun build(context: Application) = Operation().also { operation ->
-        operation.addTagsItem(category)
-        operation
-            .summary(summary)
-            .description(description)
+        kotlin.runCatching {
+            operation.addTagsItem(category)
+            operation
+                .summary(summary)
+                .description(description)
 
-        call?.invoke()?.let {
-            operation.responses(ApiResponses().apply {
-                it.responses.forEach { res ->
-                    addApiResponse("${res.code.value}", res.build(context))
-                }
-            })
-            operation.requestBody(it.body?.build(context))
-        }
-        scope?.let { operation.addSecurityItem(SecurityRequirement().addList(it.id)) }
-        operation.parameters(arguments.map { it.build(context) })
+            call?.invoke()?.let {
+                operation.responses(ApiResponses().apply {
+                    it.responses.forEach { res ->
+                        addApiResponse("${res.code.value}", res.build(context))
+                    }
+                })
+                operation.requestBody(it.body?.build(context))
+            }
+            scope?.let { scope ->
+                operation.addSecurityItem(SecurityRequirement().also { security ->
+                    security.addList("rain", scope.path)
+                })
+            }
+            operation.parameters(arguments.map { it.build(context) })
+        }.exceptionOrNull()?.printStackTrace()
+
     }
 
 

@@ -33,7 +33,7 @@ interface APIScope {
         }.also { children += it }
 
         override val path: String
-            get() = "${parent?.takeUnless { it.parent == null }?.let { "$it:" } ?: ""}$id"
+            get() = "${parent?.takeUnless { it.parent == null }?.let { "${it.id}:" } ?: ""}$id"
     }
 
     data class Builder(
@@ -57,8 +57,9 @@ interface APIScope {
                     Risk.Extreme
                 )
 
-                override fun String.invoke(builder: Builder.() -> Unit) = with(rootScope) { invoke(builder) }.also { all += it }
-                override fun all() = all + all.flatMap { it.children }
+                override fun String.invoke(builder: Builder.() -> Unit) =
+                    with(rootScope) { invoke(builder) }.also { all += it }.also { println("asdf") }
+                override fun all() = (all + all.flatMap { it.children })
             }
         }
     }

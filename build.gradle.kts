@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "co.q64"
-version = "1.0.7"
+version = "1.0.10"
 
 repositories {
     mavenCentral()

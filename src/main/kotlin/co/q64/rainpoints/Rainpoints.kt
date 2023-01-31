@@ -6,7 +6,7 @@ import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.util.AttributeKey
 import co.q64.rainpoints.argument.RainpointsArgumentRegistryKey
 import co.q64.rainpoints.schemas.RainpointsSchemaRegistryKey
-import co.q64.rainpoints.scope.RainpointsAPIScopes
+import co.q64.rainpoints.scope.RainpointsAPIScopeLibraries
 import co.q64.rainpoints.scope.RainpointsScopeHandlers
 import co.q64.rainpoints.swagger.SwaggerRoute
 
@@ -19,7 +19,7 @@ val Rainpoints = createApplicationPlugin("Rainpoints", ::RainpointsConfig) {
     register(RainpointsSchemaRegistryKey, pluginConfig.registeredSchemas)
     register(RainpointsArgumentRegistryKey, pluginConfig.registeredParsers)
     register(RainpointsScopeHandlers, pluginConfig.scopeHandlers)
-    register(RainpointsAPIScopes, pluginConfig.scopeLibs.flatMap { it.all() })
+    register(RainpointsAPIScopeLibraries, pluginConfig.scopeLibs)
     on(MonitoringEvent(ApplicationStarted)) {
         SwaggerRoute(pluginConfig).route(it)
     }

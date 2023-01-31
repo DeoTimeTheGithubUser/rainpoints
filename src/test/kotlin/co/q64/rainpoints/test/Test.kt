@@ -30,6 +30,11 @@ object TestScopes : APIScope.Library by APIScope.Library.Root {
         name = "Stacky"
         description = "Shows your glitchable utilites"
     }
+
+    object Utilities : APIScope by "utilities"() {
+        val Stacking = "stacking"()
+        val Packing = "ppacking"()
+    }
 }
 
 object UUIDSerializer : KSerializer<UUID> {
@@ -70,7 +75,9 @@ fun main(): Unit = runBlocking {
         install(Rainpoints) {
             scopes {
                 libraries {
+                    println("1")
                     +TestScopes
+                    println("2")
                 }
             }
             schemas {
@@ -83,6 +90,7 @@ fun main(): Unit = runBlocking {
                     }
                 }
             }
+
             arguments {
                 +Endpoint.Argument.Parser<Test> {
                     error("Test is too glitchy to be parsed")
@@ -95,30 +103,37 @@ fun main(): Unit = runBlocking {
                     description = "This is a test api"
                     termsOfService = "Glitching stacks is prohibited"
                 }
+                oauth {
+                    authorizationUrl = "idk"
+                }
             }
         }
 
 
 
-        routing {
-            route("/test/hello/ok") {
-                endpoint {
-                    method = HttpMethod.Post
-                    scope = TestScopes.Glitch
-                    call {
-                        val name by parameter<String>()
-                        val glitchy by parameter<Boolean>()
-                        val total by parameter<Int>().max(55)
+        try {
+            routing {
+                route("/test/hello/ok") {
+                    endpoint {
+                        method = HttpMethod.Post
+                        scope = TestScopes.Utilities.Packing
+                        call {
+                            val name by parameter<String>()
+                            val glitchy by parameter<Boolean>()
+                            val total by parameter<Int>().max(55)
 
-                        execute { body: Test ->
-                            delay(555)
-                            println("the body: $body")
-                            return@execute "good job $name, $glitchy, $total"
+                            execute { body: Test ->
+                                delay(555)
+                                println("the body: $body")
+                                return@execute "good job $name, $glitchy, $total"
+                            }
+
                         }
-
                     }
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }.start(wait = true)
 

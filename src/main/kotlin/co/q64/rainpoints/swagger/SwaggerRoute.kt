@@ -2,6 +2,11 @@
 
 package co.q64.rainpoints.swagger
 
+import co.q64.rainpoints.RainpointsConfig
+import co.q64.rainpoints.endpoint.endpoints
+import co.q64.rainpoints.impl.RainEndpoint
+import co.q64.rainpoints.scope.scopes
+import co.q64.rainpoints.util.swag
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.ContentType
@@ -19,6 +24,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
 import io.swagger.v3.oas.models.security.OAuthFlows
+import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityScheme
 import kotlinx.html.body
 import kotlinx.html.div
@@ -28,10 +34,6 @@ import kotlinx.html.link
 import kotlinx.html.script
 import kotlinx.html.title
 import kotlinx.html.unsafe
-import co.q64.rainpoints.RainpointsConfig
-import co.q64.rainpoints.endpoint.endpoints
-import co.q64.rainpoints.impl.RainEndpoint
-import co.q64.rainpoints.util.swag
 
 class SwaggerRoute(private val config: RainpointsConfig) {
 
@@ -65,7 +67,11 @@ class SwaggerRoute(private val config: RainpointsConfig) {
             config.swagger.oauth?.let { auth ->
                 schemaRequirement("rain", SecurityScheme().apply {
                     type = SecurityScheme.Type.OAUTH2
-                    flows = OAuthFlows().authorizationCode(auth)
+                    flows = OAuthFlows().authorizationCode(auth.apply {
+                        scopes = Scopes().apply {
+                            app.scopes.forEach { addString(it.path, it.description) }
+                        }
+                    })
                 })
             }
             paths(paths)
