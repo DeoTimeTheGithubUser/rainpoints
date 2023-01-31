@@ -9,6 +9,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.starProjectedType
 
 internal object SchemaFactory {
 
@@ -25,7 +26,7 @@ internal object SchemaFactory {
     )
 
     fun <T : Any> createSchema(clazz: KClass<T>) =
-        Schema<T>().apply { useType(clazz.createType()) }
+        Schema<T>().apply { useType(clazz.starProjectedType) }
 
     fun <T, P> createProperty(prop: KProperty1<T, P>) =
         Schema<P>().apply { useType(prop.returnType) }
@@ -47,7 +48,7 @@ internal object SchemaFactory {
             clazz in floatingPointTypes -> type("number")
             clazz.java.isArray -> {
                 type("array")
-                clazz.java.componentType.kotlin.createType().let {
+                clazz.java.componentType.kotlin.starProjectedType.let {
                     items(Schema<Any>().apply { useType(it) })
                 }
             }
