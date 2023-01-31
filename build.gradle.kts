@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "co.q64"
-version = "1.0.2"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -54,6 +54,13 @@ afterEvaluate {
             create<MavenPublication>("rainpoints") {
                 artifactId = "rainpoints"
                 from(components["java"])
+                pom {
+                    developers {
+                        developer {
+                            name.set("deotime")
+                        }
+                    }
+                }
             }
         }
         repositories {
