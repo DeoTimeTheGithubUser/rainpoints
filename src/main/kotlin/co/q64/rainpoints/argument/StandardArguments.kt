@@ -32,7 +32,7 @@ data class JsonArgumentParser<T>(
     override val type: KType,
     private val serializer: KSerializer<T>
 ) : Endpoint.Argument.Parser<T> {
-    override suspend fun ApplicationCall.parse(input: String): T =
+    override suspend fun PipelineContext<Unit, ApplicationCall>.parse(input: String): T =
         Json.decodeFromString(serializer, input)
 }
 

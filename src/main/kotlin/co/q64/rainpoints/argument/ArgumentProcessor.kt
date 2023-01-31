@@ -7,27 +7,29 @@ import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.response.respond
 import co.q64.rainpoints.endpoint.Endpoint
 import co.q64.rainpoints.impl.RainArgument
+import io.ktor.server.application.call
 import io.ktor.util.pipeline.PipelineContext
 
 internal class ArgumentProcessor(
-    private val call: ApplicationCall
+    private val context: PipelineContext<Unit, ApplicationCall>
 ) {
     private suspend fun <T> buildArgument(argument: Endpoint.Argument<T>): T? {
         val name = argument.name ?: run {
-            call.respond(HttpStatusCode.InternalServerError)
+            context.call.respond(HttpStatusCode.InternalServerError)
             error("Parameter $argument still has no name.")
         }
 
+        val req = context.call.request
         val raw = when (argument.paramType) {
-            Endpoint.Argument.Type.Query -> call.request.queryParameters[name]
-            Endpoint.Argument.Type.Path -> call.parameters[name]
-            Endpoint.Argument.Type.Header -> call.request.headers[name]
-            Endpoint.Argument.Type.Cookie -> call.request.cookies[name]
+            Endpoint.Argument.Type.Query -> req.queryParameters[name]
+            Endpoint.Argument.Type.Path -> context.call.parameters[name]
+            Endpoint.Argument.Type.Header -> req.headers[name]
+            Endpoint.Argument.Type.Cookie -> req.cookies[name]
         } ?: (if (!argument.required) return null
         else throw MissingRequestParameterException(name))
 
         return runCatching {
-            with(argument.parser) { call.parse(raw) }
+            with(argument.parser) { context.parse(raw) }
         }.getOrElse { throw BadRequestException("Could not parse parameter \"$name\" to type ${argument.parser.type}: ${it.message}") }
     }
 

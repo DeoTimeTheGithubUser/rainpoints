@@ -59,7 +59,7 @@ class RainEndpoint(
 
         val handler = this@RainEndpoint.call?.invoke() ?: return
         val body = handler.bodyType?.let { call.receive<Any>(it.typeInfo) }
-        val processor = ArgumentProcessor(call)
+        val processor = ArgumentProcessor(this)
         handler.arguments.forEach { processor.processParameter(it) }
         handler.execute?.let {
             @Suppress("UNCHECKED_CAST")

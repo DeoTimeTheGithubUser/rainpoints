@@ -9,6 +9,7 @@ import co.q64.rainpoints.endpoint.Endpoint.Call.Companion.response
 import co.q64.rainpoints.schemas.registeredSchema
 import co.q64.rainpoints.util.Buildable
 import io.ktor.server.application.ApplicationCall
+import io.ktor.util.pipeline.PipelineContext
 import kotlin.reflect.KClass
 
 data class RainArgument<T> @PublishedApi internal constructor(
@@ -25,12 +26,12 @@ data class RainArgument<T> @PublishedApi internal constructor(
     override fun <R> parsed(parser: Endpoint.Argument.Parser<R>) =
         cast<R>().copy(parser = parser)
 
-    override fun chain(props: Endpoint.Call.() -> Unit, closure: suspend ApplicationCall.(T) -> Unit) =
+    override fun chain(props: Endpoint.Call.() -> Unit, closure: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) =
         parsed(Endpoint.Argument.Parser(parser.type, props = props) {
             with(parser) { parse(it).also { closure(this@Parser, it) } }
         })
 
-    override fun require(happens: String, check: (T) -> Boolean) =
+    override fun require(happens: String, check: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Boolean) =
         chain({
             response(HttpStatusCode.BadRequest) {
                 description = "When ${happens.replaceFirstChar { it.lowercase() }} for parameter $name."
