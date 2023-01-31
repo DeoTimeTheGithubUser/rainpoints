@@ -43,8 +43,8 @@ interface APIScope {
     )
 
     interface Library {
-        operator fun String.invoke(builder: Builder.() -> Unit = {}): APIScope
-        fun all(): List<APIScope>
+        operator fun String.invoke(builder: Builder.() -> Unit = {}): APIScope = with(Root) { this@invoke.invoke(builder) }
+        fun all(): List<APIScope> = Root.all()
 
         companion object {
             val Root: Library = object : Library {
