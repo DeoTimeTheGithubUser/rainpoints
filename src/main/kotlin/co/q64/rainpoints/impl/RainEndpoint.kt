@@ -3,6 +3,7 @@ package co.q64.rainpoints.impl
 import co.q64.rainpoints.argument.ArgumentProcessor
 import co.q64.rainpoints.endpoint.Endpoint
 import co.q64.rainpoints.endpoint.ExecutionHandler
+import co.q64.rainpoints.endpoint.category
 import co.q64.rainpoints.scope.APIScope
 import co.q64.rainpoints.scope.scopeHandlers
 import co.q64.rainpoints.util.Buildable
@@ -32,7 +33,6 @@ class RainEndpoint(
     override var method: HttpMethod = HttpMethod.Get,
     override var secret: Boolean = false,
     override var scope: APIScope? = null,
-    override var category: String? = null,
     private var call: (() -> RainCall)? = null
 ) : Endpoint, Buildable<Operation> {
 
@@ -83,7 +83,7 @@ class RainEndpoint(
     }
 
     override fun build(context: Application) = Operation().also { operation ->
-        operation.addTagsItem(category)
+        route.category?.let { operation.addTagsItem(it) }
         operation
             .summary(summary)
             .description(description)
