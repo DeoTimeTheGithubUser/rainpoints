@@ -66,6 +66,9 @@ class SwaggerRoute(private val config: RainpointsConfig) {
             info = config.swagger.info
             config.swagger.oauth?.let { auth ->
                 schemaRequirement("rain", SecurityScheme().apply {
+                    name = "Bearer"
+                    `in` = SecurityScheme.In.HEADER
+                    bearerFormat
                     type = SecurityScheme.Type.OAUTH2
                     flows = OAuthFlows().authorizationCode(auth.apply {
                         scopes = Scopes().apply {
@@ -77,7 +80,9 @@ class SwaggerRoute(private val config: RainpointsConfig) {
             paths(paths)
         }
         app.routing {
-            configureSwagger(mapper.writeValueAsString(api))
+            val json = mapper.writeValueAsString(api)
+                .replace("\"type\" : \"OAUTH2\",", "\"type\" : \"oauth2\",") // ???
+            configureSwagger(json)
         }
 
     }
