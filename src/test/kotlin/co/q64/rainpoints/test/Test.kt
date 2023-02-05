@@ -115,6 +115,7 @@ fun main(): Unit = runBlocking {
             routing {
                 route("/test/hello/ok") {
                     endpoint {
+                        player = true
                         method = HttpMethod.Post
                         scope = TestScopes.Utilities.Packing
                         call {

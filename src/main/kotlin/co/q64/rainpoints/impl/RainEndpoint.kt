@@ -24,6 +24,7 @@ import io.ktor.util.pipeline.PipelineContext
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
+import java.util.UUID
 
 class RainEndpoint(
     private val route: Route,
@@ -33,6 +34,7 @@ class RainEndpoint(
     override var method: HttpMethod = HttpMethod.Get,
     override var secret: Boolean = false,
     override var scope: APIScope? = null,
+    override var player: Boolean = false,
     private var call: (() -> RainCall)? = null
 ) : Endpoint, Buildable<Operation> {
 
@@ -60,6 +62,14 @@ class RainEndpoint(
         val handler = this@RainEndpoint.call?.invoke() ?: return
         val body = handler.bodyType?.let { call.receive<Any>(it.typeInfo) }
         val processor = ArgumentProcessor(this)
+        if (player) {
+            with(handler) {
+                val unused by parameter(
+                    "player",
+                    description = "Valid player name/uuid. Will default to the requester if none provided."
+                ).optional()
+            }
+        }
         handler.arguments.forEach { processor.processParameter(it) }
         handler.execute?.let {
             @Suppress("UNCHECKED_CAST")

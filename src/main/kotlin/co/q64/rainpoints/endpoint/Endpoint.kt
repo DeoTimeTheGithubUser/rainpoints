@@ -25,8 +25,13 @@ interface Endpoint : ApplicationContext {
     var method: HttpMethod
     var secret: Boolean
     var scope: APIScope?
+
+    // TODO this should be removed / modulated at some point
+    var player: Boolean
+
     val path: String
     val arguments: List<Argument<*>>
+
 
     @RainpointsDsl
     fun call(closure: Call.() -> Unit)
