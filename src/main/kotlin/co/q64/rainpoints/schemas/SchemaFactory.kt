@@ -3,14 +3,16 @@ package co.q64.rainpoints.schemas
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.XML
 import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.starProjectedType
 
+private typealias NumberLimits = Map<out KClass<out Any>, Pair<Number, Number>>
 internal object SchemaFactory {
 
     private val integerTypes = mapOf(
@@ -18,11 +20,12 @@ internal object SchemaFactory {
         Long::class to (Long.MIN_VALUE to Long.MAX_VALUE),
         Byte::class to (Byte.MIN_VALUE to Byte.MAX_VALUE),
         Short::class to (Short.MIN_VALUE to Short.MAX_VALUE)
-    ) as Map<out KClass<out Any>, Pair<Number, Number>>
+    ) as NumberLimits
 
-    private val floatingPointTypes = listOf(
+    private val limitlessNumbers = listOf(
         Float::class,
-        Double::class
+        Double::class,
+        BigDecimal::class
     )
 
     fun <T : Any> createSchema(clazz: KClass<T>) =
@@ -38,14 +41,14 @@ internal object SchemaFactory {
             // primitives
             clazz == String::class -> type("string")
             clazz == Boolean::class -> type("boolean")
-            clazz in integerTypes -> {
+            (clazz in integerTypes || clazz == BigInteger::class) -> {
                 integerTypes[clazz]?.let { (min, max) ->
                     type("integer")
                     minimum = min.toLong().toBigDecimal()
                     maximum = max.toLong().toBigDecimal()
                 }
             }
-            clazz in floatingPointTypes -> type("number")
+            clazz in limitlessNumbers -> type("number")
             clazz.java.isArray -> {
                 type("array")
                 clazz.java.componentType.kotlin.starProjectedType.let {
