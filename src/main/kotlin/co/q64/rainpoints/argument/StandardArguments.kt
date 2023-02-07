@@ -4,6 +4,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import co.q64.rainpoints.endpoint.Endpoint
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.util.pipeline.PipelineContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -29,8 +30,8 @@ object LongArgumentParser : Endpoint.Argument.Parser<Long> by (Endpoint.Argument
 object DoubleArgumentParser : Endpoint.Argument.Parser<Double> by (Endpoint.Argument.Parser.simple(parse = String::toDouble))
 object BooleanArgumentParser : Endpoint.Argument.Parser<Boolean> by (Endpoint.Argument.Parser.simple(parse = String::toBooleanStrict))
 
-object BigIntegerParser : Endpoint.Argument.Parser<BigInteger> by (Endpoint.Argument.Parser.simple(parse = ::BigInteger))
-object BigDecimalParser : Endpoint.Argument.Parser<BigDecimal> by (Endpoint.Argument.Parser.simple(parse = ::BigDecimal))
+object BigIntegerParser : Endpoint.Argument.Parser<BigInteger> by (Endpoint.Argument.Parser.simple(parse = reasonable(::BigInteger)))
+object BigDecimalParser : Endpoint.Argument.Parser<BigDecimal> by (Endpoint.Argument.Parser.simple(parse = reasonable(::BigDecimal)))
 
 object UUIDArgumentParser : Endpoint.Argument.Parser<UUID> by Endpoint.Argument.Parser.simple(parse = UUID::fromString)
 
@@ -50,3 +51,9 @@ fun <T : Comparable<T>> Endpoint.Argument<T>.max(max: T) =
 
 fun Endpoint.Argument<Double>.finite() =
     require("Input value is not finite") { it.isFinite() }
+
+private const val ReasonableLength = 50
+private fun <T : Number> reasonable(parse: (String) -> T): (String) -> T = {
+    if (it.length > ReasonableLength) throw BadRequestException("Big numbers are limited to $ReasonableLength characters.")
+    parse(it)
+}
