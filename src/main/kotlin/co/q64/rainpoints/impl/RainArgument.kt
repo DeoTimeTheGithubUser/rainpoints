@@ -1,5 +1,6 @@
 package co.q64.rainpoints.impl
 
+import co.q64.rainpoints.argument.StandardArguments
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.BadRequestException
@@ -8,6 +9,7 @@ import co.q64.rainpoints.endpoint.Endpoint
 import co.q64.rainpoints.endpoint.Endpoint.Call.Companion.response
 import co.q64.rainpoints.schemas.registeredSchema
 import co.q64.rainpoints.util.Buildable
+import co.q64.rainpoints.util.clazz
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.pipeline.PipelineContext
 import kotlin.reflect.KClass
@@ -51,7 +53,8 @@ data class RainArgument<T> @PublishedApi internal constructor(
             .`in`(paramType.name.lowercase())
             .required(required)
             .example(example)
-        (parser.type.classifier as? KClass<*>)?.let { param.schema(context.registeredSchema(it)) }
+        if (parser.type in StandardArguments)
+            param.schema(context.registeredSchema(parser.type.clazz))
     }
 
     @PublishedApi
